@@ -1,9 +1,17 @@
 @import "tailwindcss";
 
+:root {
+  --bg-primary: #232323;
+  --bg-secondary: #1a1a1a;
+  --bg-tertiary: #2d2d2d;
+  --accent: #9333ea;
+  --hero-bg: #535da1;
+}
+
 * {
   scroll-behavior: smooth;
 }
 
 body {
-  background-color: #232323;
+  background-color: var(--bg-primary);
 }
