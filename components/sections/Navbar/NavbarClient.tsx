@@ -1,9 +1,10 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { NAV_LINKS, LOGO_TEXT, PHONE_NUMBER } from "@/config";
+import Image from "next/image";
+import { NAV_LINKS, PHONE_NUMBER } from "@/config";
 import { PhoneIcon } from "@/components/icons";
-import { Container } from "@/components/ui";
+import { Container, ThemeToggle } from "@/components/ui";
 import MobileMenu from "./MobileMenu";
 
 export default function NavbarClient() {
@@ -25,25 +26,31 @@ export default function NavbarClient() {
   return (
     <nav
       className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
-        scrolled ? "bg-[#232323]/95 shadow-lg backdrop-blur-sm" : "bg-[#232323]"
+        scrolled ? "bg-bg-primary/95 shadow-lg backdrop-blur-sm" : "bg-bg-primary"
       }`}
     >
-      <Container className="py-4 flex items-center justify-between">
+      <Container className="py-3 flex items-center justify-between">
         {/* Logo */}
         <button
           onClick={() => handleNavClick("#home")}
-          className="text-white font-bold text-xl tracking-wide hover:text-purple-400 transition-colors"
+          className="hover:opacity-80 transition-opacity"
         >
-          {LOGO_TEXT}
+          <Image
+            src="/images/logo/logo-text.png"
+            alt="Thuong"
+            width={120}
+            height={40}
+            className="h-10 w-auto object-contain"
+          />
         </button>
 
         {/* Desktop nav */}
-        <ul className="hidden lg:flex items-center gap-8">
+        <ul className="hidden lg:flex items-center gap-6 lg:gap-8 xl:gap-10">
           {NAV_LINKS.map((link) => (
             <li key={link.href}>
               <button
                 onClick={() => handleNavClick(link.href)}
-                className="text-gray-300 hover:text-white transition-colors text-sm font-medium"
+                className="text-text-secondary hover:text-text-primary transition-colors text-sm font-medium"
               >
                 {link.label}
               </button>
@@ -51,25 +58,31 @@ export default function NavbarClient() {
           ))}
         </ul>
 
-        {/* Phone button desktop */}
-        <a
-          href={`tel:${PHONE_NUMBER}`}
-          className="hidden lg:inline-flex items-center gap-2 bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-full text-sm font-medium transition-colors"
-        >
-          <PhoneIcon />
-          {PHONE_NUMBER}
-        </a>
+        {/* Desktop right side */}
+        <div className="hidden lg:flex items-center gap-3">
+          <ThemeToggle />
+          <a
+            href={`tel:${PHONE_NUMBER}`}
+            className="inline-flex items-center gap-2 bg-accent hover:bg-accent-hover text-white px-4 py-2 rounded-full text-sm font-medium transition-colors"
+          >
+            <PhoneIcon />
+            {PHONE_NUMBER}
+          </a>
+        </div>
 
-        {/* Mobile toggle */}
-        <button
-          className="lg:hidden text-white p-2"
-          onClick={() => setIsOpen(!isOpen)}
-          aria-label="Toggle menu"
-        >
-          <div className="w-6 h-0.5 bg-white mb-1.5 transition-all" />
-          <div className="w-6 h-0.5 bg-white mb-1.5 transition-all" />
-          <div className="w-6 h-0.5 bg-white transition-all" />
-        </button>
+        {/* Mobile right side */}
+        <div className="lg:hidden flex items-center gap-2">
+          <ThemeToggle />
+          <button
+            className="text-text-primary p-2"
+            onClick={() => setIsOpen(!isOpen)}
+            aria-label="Toggle menu"
+          >
+            <div className="w-6 h-0.5 bg-text-primary mb-1.5 transition-all" />
+            <div className="w-6 h-0.5 bg-text-primary mb-1.5 transition-all" />
+            <div className="w-6 h-0.5 bg-text-primary transition-all" />
+          </button>
+        </div>
       </Container>
 
       <MobileMenu

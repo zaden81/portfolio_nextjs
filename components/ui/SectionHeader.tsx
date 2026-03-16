@@ -15,15 +15,15 @@ export default function SectionHeader({
   className,
 }: SectionHeaderProps) {
   return (
-    <div className={cn("flex items-center gap-4 mb-12", className)}>
+    <div className={cn("flex items-center gap-4 mb-8 sm:mb-10 lg:mb-12", className)}>
       <Image
         src={imageSrc}
         alt={imageAlt}
         width={56}
         height={56}
-        className="rounded-full object-cover"
+        className="w-10 h-10 sm:w-14 sm:h-14 rounded-full object-cover"
       />
-      <h2 className="text-white text-3xl font-bold">{title}</h2>
+      <h2 className="text-text-primary text-2xl sm:text-3xl font-bold">{title}</h2>
     </div>
   );
 }

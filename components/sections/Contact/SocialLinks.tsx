@@ -4,7 +4,7 @@ import { SocialLinkButton } from "@/components/ui";
 export default function SocialLinks() {
   return (
     <div>
-      <h4 className="text-gray-400 text-sm font-semibold uppercase tracking-wider mb-4">
+      <h4 className="text-text-muted text-sm font-semibold uppercase tracking-wider mb-4">
         Stay connected
       </h4>
       <div className="flex gap-3">

@@ -7,8 +7,8 @@ interface StatusAlertProps {
 }
 
 const variantStyles = {
-  success: "bg-green-900/40 border-green-700 text-green-300",
-  error: "bg-red-900/40 border-red-700 text-red-300",
+  success: "bg-status-success-bg border-status-success-border text-status-success-text",
+  error: "bg-status-error-bg border-status-error-border text-status-error-text",
 };
 
 export default function StatusAlert({

@@ -5,12 +5,12 @@ import SkillsGrid from "./SkillsGrid";
 
 export default function About() {
   return (
-    <section id="about" className="bg-[#232323] py-20">
+    <section id="about" className="bg-bg-primary py-12 sm:py-16 lg:py-20">
       <Container>
         <MyStory />
 
         {/* Info + Skills */}
-        <div className="flex flex-col lg:flex-row gap-12">
+        <div className="flex flex-col lg:flex-row gap-8 lg:gap-12">
           <div className="flex-1">
             <InfoCard />
           </div>

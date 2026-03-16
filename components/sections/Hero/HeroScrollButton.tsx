@@ -6,7 +6,7 @@ export default function HeroScrollButton() {
       onClick={() => {
         document.querySelector("#about")?.scrollIntoView({ behavior: "smooth" });
       }}
-      className="inline-block bg-white text-[#535da1] font-semibold px-8 py-3 rounded-full hover:bg-white/90 transition-colors"
+      className="inline-block bg-accent text-white font-semibold px-8 py-3 rounded-full hover:bg-accent-hover transition-colors"
     >
       Let&apos;s begin
     </button>

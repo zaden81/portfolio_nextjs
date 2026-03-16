@@ -1,0 +1,13 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(cp \"/d/code/zaden81/Logo/logo \\(10\\).PNG\" \"D:/code/portfolio_nextjs/public/images/logo/logo-text.png\" && cp \"/d/code/zaden81/Logo/logo \\(0\\).PNG\" \"D:/code/portfolio_nextjs/public/images/logo/logo-icon.png\" && cp \"/d/code/zaden81/Logo/logo \\(1\\).PNG\" \"D:/code/portfolio_nextjs/public/images/logo/logo-text-dark.png\")",
+      "Bash(cd \"D:/code/portfolio_nextjs\" && npm run build 2>&1 | tail -20)",
+      "Bash(tasklist | grep -i node)",
+      "Bash(cd \"D:/code/portfolio_nextjs\" && rm -f .next/dev/lock && npx kill-port 3000 2>/dev/null; taskkill //F //IM node.exe 2>/dev/null; sleep 2 && npm run dev)",
+      "Bash(find:*)",
+      "Bash(grep:*)",
+      "Bash(curl:*)"
+    ]
+  }
+}

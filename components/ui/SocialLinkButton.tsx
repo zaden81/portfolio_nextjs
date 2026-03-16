@@ -21,7 +21,7 @@ export default function SocialLinkButton({
       rel="noopener noreferrer"
       aria-label={label}
       className={cn(
-        "w-10 h-10 rounded-full bg-[#2d2d2d] flex items-center justify-center text-gray-400 hover:text-white hover:bg-purple-600 transition-all",
+        "w-10 h-10 rounded-full bg-bg-tertiary flex items-center justify-center text-text-muted hover:text-white hover:bg-accent transition-all",
         className
       )}
     >

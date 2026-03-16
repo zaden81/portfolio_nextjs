@@ -6,3 +6,5 @@ export { default as SectionHeader } from "./SectionHeader";
 export { default as Card } from "./Card";
 export { default as StatusAlert } from "./StatusAlert";
 export { default as SocialLinkButton } from "./SocialLinkButton";
+export { default as LoadingScreen } from "./LoadingScreen";
+export { default as ThemeToggle } from "./ThemeToggle";

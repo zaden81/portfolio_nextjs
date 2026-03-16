@@ -1,11 +1,77 @@
 @import "tailwindcss";
 
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* ── Theme tokens registered for Tailwind v4 ── */
+@theme {
+  --color-bg-primary: var(--bg-primary);
+  --color-bg-secondary: var(--bg-secondary);
+  --color-bg-tertiary: var(--bg-tertiary);
+  --color-accent: var(--accent);
+  --color-accent-hover: var(--accent-hover);
+  --color-accent-light: var(--accent-light);
+  --color-hero-from: var(--hero-from);
+  --color-hero-via: var(--hero-via);
+  --color-hero-to: var(--hero-to);
+  --color-text-primary: var(--text-primary);
+  --color-text-secondary: var(--text-secondary);
+  --color-text-muted: var(--text-muted);
+  --color-border: var(--border-color);
+  --color-border-hover: var(--border-hover);
+  --color-status-success-bg: var(--status-success-bg);
+  --color-status-success-border: var(--status-success-border);
+  --color-status-success-text: var(--status-success-text);
+  --color-status-error-bg: var(--status-error-bg);
+  --color-status-error-border: var(--status-error-border);
+  --color-status-error-text: var(--status-error-text);
+}
+
+/* ── Dark theme (default) ── */
 :root {
-  --bg-primary: #232323;
-  --bg-secondary: #1a1a1a;
-  --bg-tertiary: #2d2d2d;
-  --accent: #9333ea;
-  --hero-bg: #535da1;
+  --bg-primary: #1a3a0a;
+  --bg-secondary: #142e06;
+  --bg-tertiary: #243d14;
+  --accent: #CC2936;
+  --accent-hover: #a82030;
+  --accent-light: #F25C69;
+  --hero-from: #2D5016;
+  --hero-via: #3D6B1E;
+  --hero-to: #2D5016;
+  --text-primary: #f0f4e8;
+  --text-secondary: #C5D5A0;
+  --text-muted: #8aad6a;
+  --border-color: #3a5e24;
+  --border-hover: #5a8e3a;
+  --status-success-bg: rgba(34, 197, 94, 0.15);
+  --status-success-border: #15803d;
+  --status-success-text: #86efac;
+  --status-error-bg: rgba(239, 68, 68, 0.15);
+  --status-error-border: #b91c1c;
+  --status-error-text: #fca5a5;
+}
+
+/* ── Light theme ── */
+:root.light {
+  --bg-primary: #FAFBF8;
+  --bg-secondary: #F0F2EC;
+  --bg-tertiary: #E8EBE2;
+  --accent: #CC2936;
+  --accent-hover: #B22230;
+  --accent-light: #F25C69;
+  --hero-from: #E8F0DC;
+  --hero-via: #D4E4C0;
+  --hero-to: #E8F0DC;
+  --text-primary: #1A2E0A;
+  --text-secondary: #3D5A28;
+  --text-muted: #6B8555;
+  --border-color: #C8D4B8;
+  --border-hover: #A0B888;
+  --status-success-bg: rgba(34, 197, 94, 0.1);
+  --status-success-border: #16a34a;
+  --status-success-text: #15803d;
+  --status-error-bg: rgba(239, 68, 68, 0.1);
+  --status-error-border: #dc2626;
+  --status-error-text: #b91c1c;
 }
 
 * {
@@ -14,4 +80,6 @@
 
 body {
   background-color: var(--bg-primary);
+  color: var(--text-primary);
+  transition: background-color 0.3s ease, color 0.3s ease;
 }

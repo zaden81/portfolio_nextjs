@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { DM_Sans } from "next/font/google";
 import { SITE_CONFIG } from "@/config";
+import { LoadingScreen } from "@/components/ui";
+import ThemeProvider from "@/components/providers/ThemeProvider";
 import "./globals.css";
 
 const dmSans = DM_Sans({
@@ -11,6 +13,13 @@ const dmSans = DM_Sans({
 export const metadata: Metadata = {
   title: SITE_CONFIG.name,
   description: SITE_CONFIG.description,
+  icons: {
+    icon: [
+      { url: "/favicon.ico", sizes: "any" },
+      { url: "/icon.png", type: "image/png" },
+    ],
+    apple: "/apple-icon.png",
+  },
   openGraph: {
     type: SITE_CONFIG.openGraph.type,
     title: SITE_CONFIG.openGraph.title,
@@ -31,9 +40,12 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang={SITE_CONFIG.locale}>
-      <body className={`${dmSans.className} antialiased bg-[#232323]`}>
-        {children}
+    <html lang={SITE_CONFIG.locale} suppressHydrationWarning>
+      <body className={`${dmSans.className} antialiased bg-bg-primary text-text-primary`}>
+        <ThemeProvider>
+          <LoadingScreen />
+          {children}
+        </ThemeProvider>
       </body>
     </html>
   );
