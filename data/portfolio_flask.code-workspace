@@ -1,10 +1,10 @@
 {
 	"folders": [
 		{
-			"path": "../../portfolio_flask"
+			"path": ".."
 		},
 		{
-			"path": ".."
+			"path": "../../zaden81"
 		}
 	],
 	"settings": {}

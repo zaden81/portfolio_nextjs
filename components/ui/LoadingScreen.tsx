@@ -20,7 +20,9 @@ export default function LoadingScreen() {
   // Page load detection
   useEffect(() => {
     if (document.readyState === "complete") {
-      setIsPageLoaded(true);
+      setTimeout(() => {
+        setIsPageLoaded(true);
+      }, 500);
       return;
     }
 
@@ -32,7 +34,9 @@ export default function LoadingScreen() {
   // Trigger fade-out when both conditions are met
   useEffect(() => {
     if (isMinTimeElapsed && isPageLoaded) {
-      setIsFadingOut(true);
+      setTimeout(() => {
+        setIsFadingOut(true);
+      }, 500);
     }
   }, [isMinTimeElapsed, isPageLoaded]);
 
