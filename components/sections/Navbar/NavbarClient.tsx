@@ -2,14 +2,17 @@
 
 import { useState, useEffect } from "react";
 import Image from "next/image";
+import Link from "next/link";
 import { NAV_LINKS, PHONE } from "@/config";
 import { PhoneIcon } from "@/components/icons";
 import { Container, ThemeToggle } from "@/components/ui";
+import { useAuth } from "@/lib/auth";
 import MobileMenu from "./MobileMenu";
 
 export default function NavbarClient() {
   const [isOpen, setIsOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const { user, isAuthenticated, logout } = useAuth();
 
   useEffect(() => {
     const handler = () => setScrolled(window.scrollY > 20);
@@ -61,6 +64,26 @@ export default function NavbarClient() {
         {/* Desktop right side */}
         <div className="hidden lg:flex items-center gap-3">
           <ThemeToggle />
+          {isAuthenticated ? (
+            <>
+              <span className="text-text-secondary text-sm">
+                {user?.name}
+              </span>
+              <button
+                onClick={logout}
+                className="text-text-secondary hover:text-text-primary text-sm font-medium transition-colors"
+              >
+                Logout
+              </button>
+            </>
+          ) : (
+            <Link
+              href="/login"
+              className="inline-flex items-center gap-2 bg-accent hover:bg-accent-hover text-white px-4 py-2 rounded-full text-sm font-medium transition-colors"
+            >
+              Login
+            </Link>
+          )}
           <a
             href={`tel:${PHONE}`}
             className="inline-flex items-center gap-2 bg-accent hover:bg-accent-hover text-white px-4 py-2 rounded-full text-sm font-medium transition-colors"
@@ -90,6 +113,9 @@ export default function NavbarClient() {
         navLinks={NAV_LINKS}
         phoneNumber={PHONE}
         onNavClick={handleNavClick}
+        isAuthenticated={isAuthenticated}
+        userName={user?.name}
+        onLogout={logout}
       />
     </nav>
   );

@@ -3,6 +3,7 @@ import { DM_Sans } from "next/font/google";
 import { SITE_CONFIG } from "@/config";
 import { LoadingScreen } from "@/components/ui";
 import ThemeProvider from "@/components/providers/ThemeProvider";
+import { AuthProvider } from "@/lib/auth";
 import "./globals.css";
 
 const dmSans = DM_Sans({
@@ -43,8 +44,10 @@ export default function RootLayout({
     <html lang={SITE_CONFIG.locale} suppressHydrationWarning>
       <body className={`${dmSans.className} antialiased bg-bg-primary text-text-primary`}>
         <ThemeProvider>
-          <LoadingScreen />
-          {children}
+          <AuthProvider>
+            <LoadingScreen />
+            {children}
+          </AuthProvider>
         </ThemeProvider>
       </body>
     </html>
