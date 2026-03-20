@@ -1,24 +1,24 @@
 # Phases Roadmap
 
-> Last updated: 2026-03-18
-> Status: Living document — phases will be refined as decisions are made
+> Last updated: 2026-03-20
+> Status: Living document — Phase 0 complete, Phase 1A in progress
 
 ---
 
 ## Phase Overview
 
-| Phase | Name | Goal | Depends On |
-|---|---|---|---|
-| **Phase 0** | Foundation & Planning | Finalize all pending decisions, set up repos, migrations, CI baseline | Owner decisions |
-| **Phase 1A** | Backend Core | Auth + basic API structure in watermelon-game-api | Phase 0 |
-| **Phase 1B** | Game MVP | Game frontend + game logic + score submission | Phase 1A + PD-001 (game genre) |
-| **Phase 1C** | Leaderboard & Polish | Leaderboard, security hardening, portfolio integration | Phase 1B |
-| **Phase 1D** | Deploy & Launch | Production deploy, monitoring, final QA | Phase 1C |
-| **Phase 2** | Expansion | Additional projects, admin panel, analytics, etc. | Phase 1D |
+| Phase | Name | Goal | Depends On | Status |
+|---|---|---|---|---|
+| **Phase 0** | Foundation & Planning | Finalize all pending decisions, set up repos, migrations, CI baseline | Owner decisions | ✅ Complete |
+| **Phase 1A** | Backend Core | Auth + basic API structure in watermelon-game-api | Phase 0 | 🔄 In Progress (email/password done, OAuth pending) |
+| **Phase 1B** | Game MVP | Game frontend + game logic + score submission | Phase 1A + PD-001 (game genre) | Blocked by PD-001 |
+| **Phase 1C** | Leaderboard & Polish | Leaderboard, security hardening, portfolio integration | Phase 1B | Pending |
+| **Phase 1D** | Deploy & Launch | Production deploy, monitoring, final QA | Phase 1C | Pending |
+| **Phase 2** | Expansion | Additional projects, admin panel, analytics, etc. | Phase 1D | Future |
 
 ---
 
-## Phase 0 — Foundation & Planning
+## Phase 0 — Foundation & Planning ✅ COMPLETE
 
 ### Goal
 Resolve all blocking decisions. Set up repo scaffolding. Establish migration tooling. Harden existing portfolio.
@@ -61,36 +61,39 @@ Resolve all blocking decisions. Set up repo scaffolding. Establish migration too
 
 ---
 
-## Phase 1A — Backend Core
+## Phase 1A — Backend Core — IN PROGRESS
 
 ### Goal
 Auth system working in watermelon-game-api. Users can register, login, and authenticate.
 
 ### Input
-- Scaffolded watermelon-game-api repo
-- Confirmed tech stack and framework
-- Database migrations for users table
+- Scaffolded watermelon-game-api repo ✅
+- Confirmed tech stack and framework ✅
+- Database migrations for users table ✅
 
 ### Tasks
 
-| # | Task | Depends On |
-|---|---|---|
-| 1A.1 | Database migration: create `users` table | Phase 0 |
-| 1A.2 | Implement Google OAuth flow | 1A.1 |
-| 1A.3 | Implement GitHub OAuth flow | 1A.1 |
-| 1A.4 | Implement email + password registration | 1A.1 |
-| 1A.5 | Implement email + password login | 1A.4 |
-| 1A.6 | Implement auth middleware (token verification) | 1A.2 or 1A.3 |
-| 1A.7 | Implement `GET /auth/me` endpoint | 1A.6 |
-| 1A.8 | Implement logout | 1A.6 |
-| 1A.9 | CORS configuration (allow portfolio_nextjs origin) | 1A.2 |
-| 1A.10 | Rate limiting on auth endpoints | 1A.2 |
-| 1A.11 | Basic error handling middleware | Phase 0 |
+| # | Task | Depends On | Status |
+|---|---|---|---|
+| 1A.1 | Database migration: create `users` + `refresh_tokens` tables | Phase 0 | ✅ Done |
+| 1A.2 | Implement email + password registration | 1A.1 | ✅ Done |
+| 1A.3 | Implement email + password login | 1A.2 | ✅ Done |
+| 1A.4 | Implement auth middleware (JWT verification) | 1A.2 | ✅ Done |
+| 1A.5 | Implement `GET /auth/me` endpoint | 1A.4 | ✅ Done |
+| 1A.6 | Implement `POST /auth/logout` | 1A.4 | ✅ Done |
+| 1A.7 | Implement `POST /auth/refresh` (token rotation) | 1A.4 | ✅ Done |
+| 1A.8 | Frontend: AuthProvider, login/register pages | 1A.2 | ✅ Done |
+| 1A.9 | Frontend: Navbar auth integration | 1A.8 | ✅ Done |
+| 1A.10 | CORS configuration (allow portfolio_nextjs origin) | — | ✅ Already in scaffold |
+| 1A.11 | Rate limiting on auth endpoints | — | ✅ Done |
+| 1A.12 | Implement Google OAuth flow | 1A.1 | TODO |
+| 1A.13 | Implement GitHub OAuth flow | 1A.1 | TODO |
 
 ### Output
-- Working auth system with Google, GitHub, and email/password
-- Protected endpoints via auth middleware
-- CORS properly configured
+- ✅ Email/password auth fully working (register, login, logout, refresh, me)
+- ✅ Frontend auth UI (login, register pages, navbar integration)
+- ✅ CORS + rate limiting configured
+- TODO: Google + GitHub OAuth flows
 
 ### Risks
 - OAuth provider setup complexity (callback URLs, client IDs)

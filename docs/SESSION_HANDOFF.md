@@ -1,4 +1,4 @@
-# Session Handoff — 2026-03-18
+# Session Handoff — 2026-03-20
 
 > Tạo lúc kết thúc session. Dùng để resume context khi bắt đầu session mới.
 
@@ -6,9 +6,9 @@
 
 ## Trạng thái hiện tại
 
-**Phase 0 đang thực hiện — đã hoàn thành 6/10 steps.**
+**Phase 0 hoàn thành. Phase 1A (Auth — Email/Password) hoàn thành.**
 
-### Đã xong
+### Session 1 (2026-03-18) — Foundation & Planning
 
 | Step | Mô tả | Repo |
 |---|---|---|
@@ -18,82 +18,122 @@
 | 0.4 | Tạo `.env.example` | portfolio_nextjs |
 | 0.5 | Scaffold toàn bộ `watermelon-game-api` (Fastify + TS, 20 files) | watermelon-game-api |
 | 0.6 | Scaffold `platform-infra` (dbmate config, initial migration) | platform-infra |
+| 0.7 | Tạo 12 doc files (system overview, architecture, roadmap, etc.) | portfolio_nextjs/docs |
+| 0.8 | Remove `ensureSchema()` auto-migration | portfolio_nextjs |
+| 0.9 | Tạo `messages` migration | platform-infra |
 
-### Chưa xong — cần bạn thao tác
+### Session 2 (2026-03-20) — Auth Implementation
 
-| Step | Việc cần làm | Ghi chú |
+| Step | Mô tả | Repo |
 |---|---|---|
-| 0.7 | `cd D:/code/watermelon-game-api && npm install` | Cài dependencies |
-| 0.8 | `cd D:/code/platform-infra` → tạo `.env` → `dbmate up` | Verify migration chạy OK với Neon |
-| 0.9 | Remove `ensureSchema()` khỏi portfolio_nextjs | Chờ 0.8 thành công |
-| 0.10 | Set up Vercel project cho portfolio_nextjs | Cần Vercel account |
+| 1A.1 | Tạo `users` + `refresh_tokens` migrations | platform-infra |
+| 1A.2 | Chạy `dbmate up` — tạo tables trên Neon | platform-infra |
+| 1A.3 | Thêm `bcryptjs`, `jsonwebtoken` dependencies | watermelon-game-api |
+| 1A.4 | Implement auth module: types, schemas, JWT, service, routes | watermelon-game-api |
+| 1A.5 | Implement `requireAuth` middleware + Fastify type augmentation | watermelon-game-api |
+| 1A.6 | Thêm Zod error handling vào global error handler | watermelon-game-api |
+| 1A.7 | Thêm `--env-file=.env` vào dev/start scripts | watermelon-game-api |
+| 1A.8 | Implement frontend auth: AuthProvider, useAuth hook, authFetch | portfolio_nextjs |
+| 1A.9 | Tạo `/login` + `/register` pages (reuse existing UI components) | portfolio_nextjs |
+| 1A.10 | Update Navbar + MobileMenu: show user name/logout khi authenticated | portfolio_nextjs |
+| 1A.11 | Test toàn bộ 8 auth endpoints bằng curl — tất cả pass | watermelon-game-api |
 
-### Chưa commit
+### Đã push lên remote
 
-Các thay đổi trong `portfolio_nextjs` chưa được commit:
-- Xóa `app/api/messages/`
-- Thêm `lib/rate-limit.ts`
-- Sửa `app/api/contact/route.ts` (rate limiting)
-- Sửa `lib/db/queries.ts`, `lib/db/index.ts` (remove getMessages)
-- Sửa `config/navigation.ts`, `config/index.ts` (remove LOGO_TEXT, PHONE_NUMBER)
-- Sửa `components/sections/Navbar/NavbarClient.tsx` (PHONE_NUMBER → PHONE)
-- Sửa `.gitignore` (remove Prisma entry)
-- Thêm `.env.example`
-- Thêm/sửa nhiều files trong `docs/`
+Tất cả 3 repos đã push. Commits:
 
-Repos `watermelon-game-api` và `platform-infra` cũng chưa commit.
+| Repo | Commit | Message |
+|---|---|---|
+| platform-infra | `56fc6c3` | feat: add users and refresh_tokens migrations |
+| watermelon-game-api | `4a14762` | feat: implement email/password auth with JWT |
+| watermelon-game-api | `f21d106` | fix: load .env via --env-file flag in dev and start scripts |
+| portfolio_nextjs | `da73c9c` | feat: add auth UI (login, register, auth context) |
 
 ---
 
-## Decisions đã chốt trong session này
+## Auth System — Tóm tắt kỹ thuật
+
+### Backend (watermelon-game-api)
+
+**Endpoints hoạt động:**
+
+| Method | Path | Auth | Mô tả |
+|---|---|---|---|
+| POST | `/auth/register` | No | Tạo user mới, trả user + tokens |
+| POST | `/auth/login` | No | Login bằng email/password |
+| POST | `/auth/logout` | No | Xóa refresh token |
+| POST | `/auth/refresh` | No | Rotate refresh token, trả token pair mới |
+| GET | `/auth/me` | Bearer | Trả thông tin user hiện tại |
+| GET | `/auth/health` | No | Health check cho auth module |
+
+**Token strategy:** JWT access token (15m) + rotating refresh token (7d)
+- Access token: JWT signed với `JWT_SECRET`, chứa `sub`, `email`, `name`
+- Refresh token: random 40 bytes hex, lưu SHA-256 hash trong DB
+- Rotation: mỗi lần refresh → xóa token cũ, tạo token mới
+
+**Security:**
+- Password: bcryptjs với salt rounds = 12
+- Rate limiting per route (10 req/min cho register/login, 30 cho refresh/logout, 100 cho /me)
+- Zod validation trên tất cả request bodies
+- Global error handler: AppError → status code, ZodError → 400, FastifyError → appropriate status
+
+### Frontend (portfolio_nextjs)
+
+**Auth flow:**
+- `AuthProvider` wraps app — tự động refresh token on mount
+- Access token lưu in-memory (JS variable) — không persist
+- Refresh token lưu trong `localStorage`
+- `authFetch()` wrapper tự attach `Authorization: Bearer` header
+- Login/Register forms reuse existing `Input`, `Button`, `StatusAlert` components
+
+**Pages:**
+- `/login` — email + password form, link tới register
+- `/register` — name + email + password form, link tới login
+
+**Navbar:**
+- Authenticated: hiện user name + "Logout" button
+- Unauthenticated: hiện "Login" link
+
+---
+
+## Decisions đã chốt trong session 2
 
 | ID | Decision |
 |---|---|
-| D-001 | Separate repos: portfolio_nextjs, watermelon-game-api, platform-infra |
-| D-002 | Auth: Google + GitHub + Email/Password |
-| D-008 | Frontend deploy: Vercel |
-| D-009 | Backend deploy: PaaS (provider chưa chốt) |
-| D-015 | Backend tech: Node.js + TypeScript |
-| D-016 | Backend framework: Fastify |
-| D-017 | API format: REST |
-| D-018 | Migration tool: dbmate |
-| D-019 | /api/messages: removed |
-| D-020 | Rate limiting: by IP |
+| D-021 | Token strategy: JWT + refresh token rotation (xác nhận R-004) |
+| D-022 | Password hashing: bcryptjs, 12 rounds |
+| D-023 | Refresh token storage: SHA-256 hash trong `refresh_tokens` table |
+| D-024 | Frontend token storage: access in memory, refresh in localStorage |
+| D-025 | No email verification trong Phase 1A (PD-016 resolved: No) |
+| D-026 | No password reset trong Phase 1A (PD-010 resolved: deferred) |
 
 ## Pending decisions quan trọng
 
 | ID | Quyết định | Ảnh hưởng |
 |---|---|---|
 | **PD-001** | **Game genre / gameplay** | **Blocks toàn bộ Phase 1B** |
+| PD-002 | Real-time vs turn-based | Blocks Phase 1B |
 | PD-007 | PaaS provider (Render/Railway/Fly.io) | Blocks Phase 1D |
-| PD-011 | Token strategy (JWT/session/refresh) | Blocks Phase 1A auth |
+| D-002 | Google + GitHub OAuth | Phase 1A chưa hoàn thành phần OAuth |
 
 ---
 
-## Docs đã tạo
+## Chưa xong — cần thao tác trên server
 
-Tất cả nằm trong `portfolio_nextjs/docs/`:
-
-```
-SYSTEM_OVERVIEW.md
-CURRENT_STATE_AUDIT.md
-PRODUCT_SCOPE.md
-TECH_ARCHITECTURE.md
-PHASES_ROADMAP.md
-OPEN_QUESTIONS.md
-DECISION_LOG.md
-EXECUTION_CHECKLIST.md
-MASTER_PLAN.md
-SKILL_AGENTS.md
-FRONTEND.md
-```
+| Step | Việc cần làm | Ghi chú |
+|---|---|---|
+| 1 | Chạy `dbmate up` trên production | Tạo users + refresh_tokens tables |
+| 2 | Set `JWT_SECRET` env var trên server | Cho watermelon-game-api |
+| 3 | Set `NEXT_PUBLIC_API_URL` trên Vercel | Trỏ tới API URL production |
+| 4 | Test auth flow end-to-end trên production | Register → Login → /auth/me |
 
 ---
 
 ## Khi resume session mới
 
 1. Đọc file này để lấy context
-2. Đọc `docs/EXECUTION_CHECKLIST.md` để biết checklist chi tiết
+2. Đọc `docs/EXECUTION_CHECKLIST.md` để biết chi tiết checklist
 3. Đọc `docs/DECISION_LOG.md` để biết decisions đã chốt vs pending
-4. Tiếp tục Phase 0 steps 0.7-0.10
-5. Sau Phase 0 xong → bắt đầu Phase 1A (auth)
+4. **Nếu tiếp tục Phase 1A**: implement Google + GitHub OAuth
+5. **Nếu chuyển Phase 1B**: cần PD-001 (game genre) đã chốt
+6. **Nếu deploy**: thực hiện các bước server ở trên

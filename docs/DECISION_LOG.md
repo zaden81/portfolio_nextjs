@@ -1,6 +1,6 @@
 # Decision Log
 
-> Last updated: 2026-03-18
+> Last updated: 2026-03-20
 > Status: Living document — updated as decisions are made
 
 ---
@@ -34,12 +34,18 @@
 | D-012 | Platform-infra purpose | Config/migrations/docs repo, not a deployed service in stage 1 | Owner | Repo for infra tooling only | No deploy pipeline needed for this repo |
 | D-013 | Game type | Web-based browser game | Owner | Portfolio showcases web skills | Must be playable in browser, no native/download |
 | D-014 | Game architecture (stage 1) | Single featured mini game, flexible architecture | Owner | Genre not decided, keep architecture open | Cannot design game-specific schema yet |
-| D-015 | Backend tech stack | Node.js + TypeScript | Owner (confirmed recommendation R-001) | Same language as frontend; fastest to ship; strong ecosystem | All backend development |
-| D-016 | Backend framework | Fastify | Owner (confirmed recommendation R-002) | Fast, typed, good plugin system, not over-engineered | Backend DX, middleware, performance |
-| D-017 | API format | REST | Owner (confirmed recommendation R-003) | Simplest, sufficient for stage 1 | API design, documentation |
-| D-018 | Migration tool | dbmate (raw SQL migrations) | Owner (confirmed recommendation R-006) | Simple, language-agnostic, fits platform-infra | Migration workflow |
-| D-019 | /api/messages | Remove for now, add back with auth later | Owner (confirmed recommendation R-007) | Security hole, no admin panel to consume it | Immediate security improvement |
+| D-015 | Backend tech stack | Node.js + TypeScript | Owner (confirmed R-001) | Same language as frontend; fastest to ship; strong ecosystem | All backend development |
+| D-016 | Backend framework | Fastify | Owner (confirmed R-002) | Fast, typed, good plugin system, not over-engineered | Backend DX, middleware, performance |
+| D-017 | API format | REST | Owner (confirmed R-003) | Simplest, sufficient for stage 1 | API design, documentation |
+| D-018 | Migration tool | dbmate (raw SQL migrations) | Owner (confirmed R-006) | Simple, language-agnostic, fits platform-infra | Migration workflow |
+| D-019 | /api/messages | Remove for now, add back with auth later | Owner (confirmed R-007) | Security hole, no admin panel to consume it | Immediate security improvement |
 | D-020 | Rate limiting strategy (Phase 0) | By IP for /api/contact | Owner (confirmed recommendation) | No auth yet; simplest baseline; can expand to IP+user later | Abuse prevention on contact form |
+| D-021 | Token strategy | JWT access token (15m) + rotating refresh token (7d) | Owner (confirmed R-004) | Stateless auth with revocation via token rotation; no Redis needed | Auth implementation core |
+| D-022 | Password hashing | bcryptjs, 12 salt rounds | Dev | Industry standard, good security/performance balance | Auth registration/login |
+| D-023 | Refresh token storage | SHA-256 hash in `refresh_tokens` table | Dev | Never store raw tokens; hash allows lookup without exposing secret | Database schema, token validation |
+| D-024 | Frontend token storage | Access token in memory, refresh token in localStorage | Dev | Access token not persisted = more secure; refresh in localStorage allows session restoration on page reload | Frontend auth flow |
+| D-025 | Email verification | Not required in Phase 1A | Owner | Reduces scope; no email provider needed | Unverified emails accepted |
+| D-026 | Password reset | Deferred to later | Owner | Reduces Phase 1A scope; users can create new account | No reset flow in stage 1 |
 
 ---
 
@@ -47,7 +53,6 @@
 
 | ID | Title | Recommendation | Rationale | Alternatives | Impact |
 |---|---|---|---|---|---|
-| R-004 | Token strategy (PD-011) | JWT + refresh token | Stateless auth with revocation capability via refresh token rotation | Plain JWT (can't revoke), Session+cookie (needs Redis from start) | Auth implementation, security posture |
 | R-005 | Game route (PD-012) | Dedicated `/game` route in portfolio_nextjs | Clean URL, shareable, better SEO, clear separation from portfolio sections | Embedded in page (cluttered), subdomain (complex setup) | Frontend routing |
 
 ---
@@ -64,12 +69,6 @@
 | PD-006 | Anti-cheat | Server validation, rate limiting, replay verification, none | Phase 1C | Complexity vs integrity trade-off |
 | PD-007 | PaaS provider | Render, Railway, Fly.io | Phase 1D | Each has different pricing/DX |
 | PD-008 | Admin panel scope | Contact messages, user accounts, game data, all | Phase 2 | Not blocking stage 1 |
-| PD-010 | Password reset flow | Email reset link, no reset, manual reset | Phase 1A | Needs email provider if automated |
-| PD-011 | Token strategy | JWT, Session+cookie, JWT+refresh | Phase 1A | Recommendation: JWT + refresh token |
-| PD-012 | Game route strategy | /game route, embedded, subdomain | Phase 1B | Recommendation: /game route |
-| PD-016 | Email verification required? | Yes (needs email provider), No | Phase 1A | Affects sign-up flow complexity |
-| PD-017 | Auth persistence across repos | Shared cookie, shared JWT, separate auth per service | Phase 1A | Cross-origin auth is complex |
-| PD-022 | Redis provider | Upstash, Railway Redis, Render Redis, Fly Redis | Phase 1A (if session-based) | Only needed if session-based auth chosen |
 | PD-026 | Custom domain? | Yes (which domain?), No (use Vercel default) | Phase 1D | OAuth callback URLs, Vercel config |
 
 ---
@@ -83,3 +82,5 @@
 | DD-003 | Admin dashboard | Stage 2+ | Scope not defined |
 | DD-004 | User profiles (public) | Stage 2+ | Not in stage 1 scope |
 | DD-005 | Analytics/monitoring | Stage 2+ | Not in stage 1 scope |
+| DD-006 | Email verification | Stage 1 later or Stage 2 | No email provider needed for MVP |
+| DD-007 | Password reset flow | Stage 1 later or Stage 2 | Users can create new account for now |

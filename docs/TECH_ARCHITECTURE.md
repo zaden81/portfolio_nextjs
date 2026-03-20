@@ -1,7 +1,7 @@
 # Technical Architecture
 
-> Last updated: 2026-03-18
-> Status: Stage 1 architecture — some decisions pending owner confirmation
+> Last updated: 2026-03-20
+> Status: Stage 1 architecture — auth (email/password) implemented, OAuth pending
 
 ---
 
@@ -58,47 +58,48 @@ platform-infra ──migrations────────────────�
 
 ## 3. Frontend Architecture (portfolio_nextjs)
 
-### Current Architecture (verified from code)
+### Current Architecture (verified from code — updated 2026-03-20)
 
 ```
 app/
-├── layout.tsx          → Root: font, metadata, ThemeProvider, LoadingScreen
+├── layout.tsx          → Root: font, metadata, ThemeProvider, AuthProvider, LoadingScreen
 ├── page.tsx            → Composes: Navbar → Hero → About → Projects → Contact → Footer
 ├── globals.css         → Theme tokens (CSS variables for Tailwind v4)
+├── login/page.tsx      → Login page (email + password)
+├── register/page.tsx   → Register page (name + email + password)
 └── api/
-    ├── contact/        → POST: validate + insert message
-    └── messages/       → GET: fetch all messages (needs auth)
+    └── contact/        → POST: validate + insert message
 
 components/
 ├── ui/                 → Stateless primitives (Button, Card, Input, etc.)
 ├── sections/           → Page sections (each self-contained folder)
+│   ├── Auth/           → LoginForm, RegisterForm
+│   └── Navbar/         → NavbarClient (auth-aware), MobileMenu (auth-aware)
 ├── icons/              → SVG components
 └── providers/          → ThemeProvider
 
 config/                 → Site metadata, navigation, personal info
 data/                   → Projects, skills, social links (typed constants)
-types/                  → TypeScript interfaces
-lib/                    → Utilities, DB access, validation
+types/                  → TypeScript interfaces (including auth types)
+lib/
+├── utils.ts            → cn() utility
+├── api/                → Response helpers
+├── auth/               → AuthProvider, useAuth hook, authFetch, authApi client
+├── db/                 → Client, queries
+└── validations/        → Env + contact schema (Zod)
 ```
 
 ### Target Architecture Additions for Stage 1
 
 ```
 app/
-├── (existing sections)
+├── (existing sections + auth pages)
 ├── game/               → Game page/route (TBD: embedded or separate page)
-└── api/
-    ├── contact/        → (existing)
-    └── messages/       → (needs auth protection or removal)
-
-lib/
-├── (existing)
-└── api-client/         → HTTP client for watermelon-game-api calls (recommendation)
 ```
 
-**Recommendation**: Create a thin API client (`lib/api-client/`) that wraps fetch calls to watermelon-game-api. This prevents game components from hardcoding API URLs and centralizes auth token handling.
+**Auth client**: Already implemented in `lib/auth/` — `AuthProvider`, `useAuth`, `authFetch`, `authApi`.
 
-**Pending decision**: Should the game be embedded in the portfolio page or have its own `/game` route?
+**Pending**: Game API client layer for game-specific calls (can extend existing `authFetch`).
 
 ---
 
@@ -187,44 +188,55 @@ watermelon-game-api/
 
 ## 6. Auth Boundary
 
-### Auth Flow (Stage 1)
+### Auth Flow (Stage 1) — Implemented
 
 ```
-┌──────────────────────────────────────────────────┐
-│               portfolio_nextjs                    │
-│                                                  │
-│  Game UI → "Login" button → redirect to OAuth    │
-│         → OR show email/password form            │
-│         → Receive token → store in cookie/       │
-│           localStorage → attach to API calls     │
-└────────────────────┬─────────────────────────────┘
-                     │
+┌──────────────────────────────────────────────────────┐
+│               portfolio_nextjs                        │
+│                                                      │
+│  AuthProvider (React Context)                         │
+│  ├── On mount: try refresh token from localStorage    │
+│  ├── Login page → POST /auth/login → receive tokens   │
+│  ├── Register page → POST /auth/register → tokens     │
+│  ├── Access token stored in JS memory (not persisted)  │
+│  ├── Refresh token stored in localStorage              │
+│  └── authFetch() wrapper → auto-attaches Bearer token  │
+│                                                      │
+│  Navbar: shows user name + logout when authenticated   │
+└────────────────────┬─────────────────────────────────┘
+                     │ HTTPS + Authorization: Bearer <JWT>
                      ▼
-┌──────────────────────────────────────────────────┐
-│           watermelon-game-api                    │
-│                                                  │
-│  Auth Module:                                    │
-│  ├── POST /auth/google    → Google OAuth flow    │
-│  ├── POST /auth/github    → GitHub OAuth flow    │
-│  ├── POST /auth/register  → Email + password     │
-│  ├── POST /auth/login     → Email + password     │
-│  ├── POST /auth/logout    → Invalidate session   │
-│  └── GET  /auth/me        → Current user info    │
-│                                                  │
-│  Auth Middleware:                                 │
-│  └── Verifies token on protected endpoints       │
-└──────────────────────────────────────────────────┘
+┌──────────────────────────────────────────────────────┐
+│           watermelon-game-api                        │
+│                                                      │
+│  Auth Module (implemented):                           │
+│  ├── POST /auth/register  → Create user, return JWT   │
+│  ├── POST /auth/login     → Verify password, JWT      │
+│  ├── POST /auth/logout    → Revoke refresh token      │
+│  ├── POST /auth/refresh   → Rotate refresh token      │
+│  └── GET  /auth/me        → Current user (protected)  │
+│                                                      │
+│  Auth Module (TODO — OAuth):                          │
+│  ├── POST /auth/google    → Google OAuth flow          │
+│  └── POST /auth/github    → GitHub OAuth flow          │
+│                                                      │
+│  Auth Middleware:                                      │
+│  └── requireAuth → verifies JWT, sets request.user     │
+└──────────────────────────────────────────────────────┘
 ```
 
-### Token Strategy — Pending decision
+### Token Strategy — Confirmed (D-021)
 
-| Option | Pros | Cons |
-|---|---|---|
-| JWT (stateless) | Simple, no server state | Can't revoke easily, token size |
-| Session + cookie | Revocable, smaller payload | Needs session store (Redis) |
-| JWT + refresh token | Balance of both | More complex implementation |
+**JWT access token (15 min) + rotating refresh token (7 days)**
 
-**Status**: **Pending owner decision** — Recommendation is JWT + refresh token for stage 1 if Redis is available (owner confirmed managed Redis), otherwise plain JWT with short expiry.
+| Component | Implementation |
+|---|---|
+| Access token | JWT signed with HS256, contains `sub`, `email`, `name` |
+| Refresh token | Random 40 bytes hex, stored as SHA-256 hash in DB |
+| Rotation | Each refresh deletes old token, creates new pair |
+| Password hashing | bcryptjs, 12 salt rounds |
+| Validation | Zod schemas on all request bodies |
+| Rate limiting | Per-route (10/min auth, 30/min token ops, 100/min read) |
 
 ---
 
@@ -247,26 +259,33 @@ messages (
 )
 ```
 
-### Target Schema (Stage 1 — recommendation)
+### Target Schema (Stage 1)
 
 ```sql
 -- Existing
 messages (...)
 
--- New: Auth
+-- Implemented (2026-03-20)
 users (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  email VARCHAR(255) UNIQUE,
-  password_hash VARCHAR(255),           -- NULL for OAuth-only users
-  display_name VARCHAR(100) NOT NULL,
-  avatar_url TEXT,
-  auth_provider VARCHAR(20) NOT NULL,   -- 'google', 'github', 'email'
-  provider_id VARCHAR(255),             -- External provider user ID
-  created_at TIMESTAMPTZ DEFAULT NOW(),
-  updated_at TIMESTAMPTZ DEFAULT NOW()
+  email VARCHAR(255) UNIQUE NOT NULL,
+  password_hash VARCHAR(255) NOT NULL,
+  name VARCHAR(100) NOT NULL,
+  created_at TIMESTAMPTZ DEFAULT now(),
+  updated_at TIMESTAMPTZ DEFAULT now()
 )
+-- Index: idx_users_email ON users(email)
 
--- New: Game (schema depends on game genre — PENDING PD-001)
+refresh_tokens (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  token_hash VARCHAR(64) NOT NULL,
+  expires_at TIMESTAMPTZ NOT NULL,
+  created_at TIMESTAMPTZ DEFAULT now()
+)
+-- Index: idx_refresh_tokens_hash ON refresh_tokens(token_hash)
+
+-- TODO: Game (schema depends on game genre — PENDING PD-001)
 game_sessions (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id UUID REFERENCES users(id),   -- NULL for guest sessions
@@ -275,11 +294,11 @@ game_sessions (
   completed_at TIMESTAMPTZ DEFAULT NOW()
 )
 
--- New: Leaderboard (may be a view or materialized view)
+-- TODO: Leaderboard (may be a view or materialized view)
 -- Schema depends on PD-004 (leaderboard type) and PD-005 (scoring metric)
 ```
 
-**Note**: Final game-related schema depends on game genre (PD-001) and scoring metric (PD-005). Above is a minimal starting point.
+**Note**: `users` table currently only supports email/password auth. When Google/GitHub OAuth is added, columns like `auth_provider`, `provider_id`, `avatar_url` may be added via new migration.
 
 ---
 
@@ -287,17 +306,17 @@ game_sessions (
 
 | Measure | Location | Status |
 |---|---|---|
-| Input validation (Zod) | API boundaries | ✅ Exists for contact, needed for all new endpoints |
+| Input validation (Zod) | API boundaries | ✅ portfolio contact + all auth endpoints |
 | HTTPS | Vercel + PaaS | Provided by platform |
-| CORS | watermelon-game-api | **To configure** — allow only portfolio_nextjs origin |
-| Rate limiting | Both APIs | **To implement** |
-| Password hashing | watermelon-game-api | **To implement** — bcrypt or argon2 |
+| CORS | watermelon-game-api | ✅ Configured — allows only portfolio_nextjs origin |
+| Rate limiting | Both APIs | ✅ portfolio /api/contact (5/min) + all auth routes (10-100/min) |
+| Password hashing | watermelon-game-api | ✅ bcryptjs, 12 salt rounds |
 | SQL injection prevention | All DB queries | ✅ Using parameterized queries (Neon tagged templates) |
 | XSS prevention | portfolio_nextjs | ✅ React auto-escapes by default |
-| Auth token security | watermelon-game-api | **To implement** — httpOnly cookies or secure storage |
+| Auth token security | watermelon-game-api | ✅ JWT access (15m) + refresh rotation; refresh stored as SHA-256 hash |
 | OAuth state parameter | watermelon-game-api | **To implement** — CSRF protection for OAuth flows |
 | Environment variable protection | All repos | ✅ .env in .gitignore |
-| `/api/messages` protection | portfolio_nextjs | **To fix** — currently unprotected |
+| `/api/messages` protection | portfolio_nextjs | ✅ Removed (D-019) |
 
 ---
 

@@ -1,7 +1,7 @@
 # Master Plan
 
-> Last updated: 2026-03-18
-> Status: Stage 1 master plan. Phases are sequential with defined gates.
+> Last updated: 2026-03-20
+> Status: Stage 1 master plan. Phase 0 complete, Phase 1A in progress.
 
 ---
 
@@ -16,102 +16,48 @@
 
 ---
 
-## Phase 0 — Foundation & Planning
+## Phase 0 — Foundation & Planning ✅ COMPLETE
 
 ### Goal
 Resolve all blocking decisions. Set up all repos. Establish migration tooling. Harden existing portfolio for production.
 
-### Prerequisites
-- Owner available for decision-making
-
-### Work Items
-
-**Owner decisions (blocking):**
-1. Confirm backend tech stack → PD-009
-2. Confirm backend framework → PD-013
-3. Confirm API format → PD-014
-4. Confirm migration tool → PD-021
-5. Confirm /api/messages fate → PD-023
-6. Confirm rate limiting strategy → PD-024
-
-**Dev work (parallel where possible):**
-1. Create & scaffold watermelon-game-api repo
-2. Create & scaffold platform-infra repo
-3. Set up migration tooling in platform-infra
-4. Migrate existing `messages` schema to proper migration
-5. Remove `ensureSchema()` from portfolio_nextjs
-6. Protect/remove `/api/messages`
-7. Add rate limiting to `/api/contact`
-8. Add .env.example files to all repos
-9. Set up Vercel project for portfolio_nextjs
-10. Clean up minor issues (dead gitignore entry, duplicate constants)
-
-### Expected Output
-- 3 repos created and scaffolded
-- Migration tooling working
-- Portfolio hardened
-- Vercel deploy working for portfolio
-
 ### Gate Criteria
-- [ ] All Phase 0 owner decisions confirmed
-- [ ] All 3 repos exist with proper structure
-- [ ] Migrations work against Neon
+- [x] All Phase 0 owner decisions confirmed
+- [x] All 3 repos exist with proper structure
+- [x] Migrations work against Neon
 - [ ] Portfolio deploys on Vercel
-- [ ] No known security issues in portfolio
-
-### Risks
-| Risk | Mitigation |
-|---|---|
-| Owner decisions delayed | Prioritize decisions that block most work first |
-| Migration tool choice impacts later phases | Choose simple tool (dbmate) that doesn't lock in ORM |
+- [x] No known security issues in portfolio
 
 ---
 
-## Phase 1A — Backend Core (Auth)
+## Phase 1A — Backend Core (Auth) — IN PROGRESS
 
 ### Goal
 Working auth system in watermelon-game-api. Users can register/login via Google, GitHub, or email.
 
-### Prerequisites
-- Phase 0 complete
-- PD-009, PD-011, PD-013 confirmed
-- PD-010, PD-016, PD-017 confirmed (auth detail decisions)
+### Progress (as of 2026-03-20)
 
-### Work Items
+**Completed:**
+- ✅ `users` + `refresh_tokens` table migrations created and applied
+- ✅ Email + password registration (bcryptjs, Zod validation)
+- ✅ Email + password login with JWT access + refresh tokens
+- ✅ Auth middleware (`requireAuth`)
+- ✅ `GET /auth/me`, `POST /auth/logout`, `POST /auth/refresh` (token rotation)
+- ✅ CORS configured, rate limiting on all auth routes
+- ✅ Global error handler (AppError, ZodError, FastifyError)
+- ✅ Frontend: AuthProvider, useAuth hook, login/register pages, navbar integration
 
-1. Create `users` table migration
-2. Implement Google OAuth flow (register app, endpoints, callback)
-3. Implement GitHub OAuth flow (register app, endpoints, callback)
-4. Implement email + password registration (hashing, validation)
-5. Implement email + password login
-6. Implement auth middleware (token verification)
-7. Implement `GET /auth/me` and `POST /auth/logout`
-8. Configure CORS for portfolio_nextjs origin
-9. Add rate limiting to auth endpoints
-10. Add global error handling middleware
-
-### Expected Output
-- Auth endpoints functional (6 endpoints minimum)
-- Token generation and verification working
-- CORS configured correctly
-- Auth tested end-to-end
+**Remaining:**
+- [ ] Google OAuth flow (requires Google Cloud Console setup by owner)
+- [ ] GitHub OAuth flow (requires GitHub OAuth app setup by owner)
 
 ### Gate Criteria
-- [ ] All 3 auth methods working (Google, GitHub, email/password)
-- [ ] Auth middleware correctly blocks unauthenticated requests
-- [ ] CORS allows only portfolio_nextjs origin
-- [ ] Rate limiting active on auth endpoints
-- [ ] No security issues identified in auth review
-
-### Risks
-| Risk | Mitigation |
-|---|---|
-| OAuth provider setup complexity | Document setup steps clearly, test with localhost first |
-| Email/password complexity (hashing, verification, reset) | Start with minimal flow, defer password reset to later |
-| Cross-origin auth (Vercel ↔ PaaS) | Test CORS early, decide cookie vs header auth early |
-
-### Owner Decisions Required
-- PD-010 (password reset), PD-016 (email verification), PD-017 (cross-origin auth)
+- [x] Email/password auth working
+- [x] Auth middleware correctly blocks unauthenticated requests
+- [x] CORS allows only portfolio_nextjs origin
+- [x] Rate limiting active on auth endpoints
+- [ ] Google OAuth working
+- [ ] GitHub OAuth working
 
 ---
 
