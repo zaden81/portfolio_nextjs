@@ -5,6 +5,12 @@
 		},
 		{
 			"path": "../../zaden81"
+		},
+		{
+			"path": "../../platform-infra"
+		},
+		{
+			"path": "../../watermelon-game-api"
 		}
 	],
 	"settings": {}

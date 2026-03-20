@@ -10,9 +10,3 @@ export async function insertMessage(data: ContactInput) {
     VALUES (${data.name}, ${data.email}, ${data.message})
   `;
 }
-
-export async function getMessages() {
-  await ensureSchema();
-  const sql = getClient();
-  return sql`SELECT id, name, email, message, created_at FROM messages ORDER BY created_at DESC`;
-}

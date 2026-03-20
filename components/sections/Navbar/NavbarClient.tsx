@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Image from "next/image";
-import { NAV_LINKS, PHONE_NUMBER } from "@/config";
+import { NAV_LINKS, PHONE } from "@/config";
 import { PhoneIcon } from "@/components/icons";
 import { Container, ThemeToggle } from "@/components/ui";
 import MobileMenu from "./MobileMenu";
@@ -62,11 +62,11 @@ export default function NavbarClient() {
         <div className="hidden lg:flex items-center gap-3">
           <ThemeToggle />
           <a
-            href={`tel:${PHONE_NUMBER}`}
+            href={`tel:${PHONE}`}
             className="inline-flex items-center gap-2 bg-accent hover:bg-accent-hover text-white px-4 py-2 rounded-full text-sm font-medium transition-colors"
           >
             <PhoneIcon />
-            {PHONE_NUMBER}
+            {PHONE}
           </a>
         </div>
 
@@ -88,7 +88,7 @@ export default function NavbarClient() {
       <MobileMenu
         isOpen={isOpen}
         navLinks={NAV_LINKS}
-        phoneNumber={PHONE_NUMBER}
+        phoneNumber={PHONE}
         onNavClick={handleNavClick}
       />
     </nav>
