@@ -12,3 +12,4 @@ export type {
   TokenPair,
   AuthApiResponse,
 } from "./auth";
+export type { Block, Level, GamePhase, GameState } from "./game";

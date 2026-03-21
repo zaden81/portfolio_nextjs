@@ -24,15 +24,26 @@ export default function MobileMenu({
 
   return (
     <div className="lg:hidden bg-bg-primary border-t border-border px-4 py-4">
-      {navLinks.map((link) => (
-        <button
-          key={link.href}
-          onClick={() => onNavClick(link.href)}
-          className="block w-full text-left text-text-secondary hover:text-text-primary py-2 text-sm"
-        >
-          {link.label}
-        </button>
-      ))}
+      {navLinks.map((link) =>
+        link.href.startsWith("/") ? (
+          <Link
+            key={link.href}
+            href={link.href}
+            onClick={() => onNavClick(link.href)}
+            className="block w-full text-left text-text-secondary hover:text-text-primary py-2 text-sm"
+          >
+            {link.label}
+          </Link>
+        ) : (
+          <button
+            key={link.href}
+            onClick={() => onNavClick(link.href)}
+            className="block w-full text-left text-text-secondary hover:text-text-primary py-2 text-sm"
+          >
+            {link.label}
+          </button>
+        ),
+      )}
 
       {isAuthenticated ? (
         <div className="mt-3 flex items-center gap-3">

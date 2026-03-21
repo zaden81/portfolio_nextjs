@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { NAV_LINKS, PHONE } from "@/config";
 import { PhoneIcon } from "@/components/icons";
 import { Container, ThemeToggle } from "@/components/ui";
@@ -13,6 +14,7 @@ export default function NavbarClient() {
   const [isOpen, setIsOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const { user, isAuthenticated, logout } = useAuth();
+  const router = useRouter();
 
   useEffect(() => {
     const handler = () => setScrolled(window.scrollY > 20);
@@ -22,6 +24,10 @@ export default function NavbarClient() {
 
   const handleNavClick = (href: string) => {
     setIsOpen(false);
+    if (href.startsWith("/")) {
+      router.push(href);
+      return;
+    }
     const el = document.querySelector(href);
     el?.scrollIntoView({ behavior: "smooth" });
   };
@@ -51,12 +57,21 @@ export default function NavbarClient() {
         <ul className="hidden lg:flex items-center gap-6 lg:gap-8 xl:gap-10">
           {NAV_LINKS.map((link) => (
             <li key={link.href}>
-              <button
-                onClick={() => handleNavClick(link.href)}
-                className="text-text-secondary hover:text-text-primary transition-colors text-sm font-medium"
-              >
-                {link.label}
-              </button>
+              {link.href.startsWith("/") ? (
+                <Link
+                  href={link.href}
+                  className="text-text-secondary hover:text-text-primary transition-colors text-sm font-medium"
+                >
+                  {link.label}
+                </Link>
+              ) : (
+                <button
+                  onClick={() => handleNavClick(link.href)}
+                  className="text-text-secondary hover:text-text-primary transition-colors text-sm font-medium"
+                >
+                  {link.label}
+                </button>
+              )}
             </li>
           ))}
         </ul>
