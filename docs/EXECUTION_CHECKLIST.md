@@ -1,6 +1,6 @@
 # Execution Checklist
 
-> Last updated: 2026-03-20
+> Last updated: 2026-03-21
 > Status: Master checklist for stage 1 execution. Update as work progresses.
 
 ---
@@ -47,14 +47,14 @@
 
 ---
 
-## Phase 1A — Backend Core (Auth) — IN PROGRESS
+## Phase 1A — Backend Core (Auth) — EMAIL/PASSWORD DONE, OAUTH PENDING
 
 ### Owner Decisions
 - [x] PD-011: Token strategy — **JWT + refresh token rotation** (D-021)
 - [x] PD-016: Email verification required? — **No, deferred** (D-025)
 - [x] PD-010: Password reset flow — **Deferred to later** (D-026)
-- [ ] PD-017: Auth persistence across repos — **Resolved in practice**: JWT Bearer in Authorization header, CORS configured
-- [ ] PD-022: Redis provider — **Not needed**: using DB-backed refresh tokens instead of sessions
+- [x] PD-017: Auth persistence across repos — **Resolved**: JWT Bearer in Authorization header, CORS configured
+- [x] PD-022: Redis provider — **Not needed**: using DB-backed refresh tokens instead of sessions
 
 ### Database
 - [x] Create migration: `users` table — **Done** (`20260320000001_create_users_table.sql`)
@@ -107,37 +107,50 @@
 
 ---
 
-## Phase 1B — Game MVP
+## Phase 1B — Game MVP ✅ COMPLETE
 
 ### Owner Decisions
-- [ ] PD-001: Game genre confirmed (CRITICAL — blocks this phase)
-- [ ] PD-002: Real-time vs turn-based confirmed
-- [ ] PD-005: Scoring metric confirmed
-- [ ] PD-006: Anti-cheat strategy confirmed
-- [ ] PD-015: Game route confirmed
+- [x] PD-001: Game genre confirmed — **Angry Birds style physics game** (D-027)
+- [x] PD-002: Real-time vs turn-based — **Real-time physics simulation (client-side)** (D-028)
+- [x] PD-005: Scoring metric — **Points: blocks destroyed × level multiplier + bonuses** (D-029)
+- [x] PD-006: Anti-cheat strategy — **Server-side session tracking, client calculates score** (deferred full validation to Phase 1C)
+- [x] PD-015: Game route — **Dedicated `/game` route** (R-005 confirmed → D-030)
 
 ### Database
-- [ ] Create migration: `game_sessions` table (schema based on game genre)
-- [ ] Run migration
+- [x] Create migration: `game_sessions` table — **Done** (`20260321000001_create_game_sessions_table.sql`)
+- [x] Run migration against Neon — **Done (2026-03-21)**
 
 ### Backend (watermelon-game-api)
-- [ ] Implement game logic API endpoints (specific to game genre)
-- [ ] Implement score submission endpoint (authenticated only)
-- [ ] Implement game session tracking
-- [ ] Guest mode: allow unauthenticated game requests (no score save)
+- [x] Implement game types (`game.types.ts`) — **GameSession interface**
+- [x] Implement game schemas (`game.schemas.ts`) — **Zod: updateScoreSchema**
+- [x] Implement game service (`game.service.ts`) — **createSession, updateScore, completeSession, getUserSessions**
+- [x] Implement game routes (`game.routes.ts`) — **6 endpoints: health, sessions CRUD, levels**
+- [x] POST /game/sessions — Create new game session (auth required)
+- [x] PATCH /game/sessions/:id/score — Update score (auth required, ownership check)
+- [x] POST /game/sessions/:id/complete — Complete session (auth required, ownership check)
+- [x] GET /game/sessions/me — Get user's sessions (auth required)
+- [x] GET /game/levels — Get static level data (public)
+- [x] Guest mode: guests can play locally, no score save (no backend call without auth)
 
 ### Frontend (portfolio_nextjs)
-- [ ] Create `/game` route (or embed per PD-012 decision)
-- [ ] Build game UI (technology depends on genre)
-- [ ] Create API client layer (`lib/api-client/`)
-- [ ] Integrate auth flow in game page (login prompt, guest mode toggle)
-- [ ] Implement score submission from game UI
-- [ ] Guest mode: local score display (session only, not persisted)
+- [x] Install matter-js physics engine + @types/matter-js
+- [x] Create `/game` route (`app/game/page.tsx`)
+- [x] Build game engine (`lib/game/engine.ts`) — Matter.js physics, slingshot, game loop, canvas rendering
+- [x] Build physics helpers (`lib/game/physics.ts`) — Ground, walls, blocks, projectile, slingshot
+- [x] Define 3 levels (`lib/game/levels.ts`) — Simple Tower, Double Stack, Pyramid
+- [x] Scoring system (`lib/game/scoring.ts`) — Block score × level, bonuses for remaining projectiles
+- [x] Game types (`lib/game/types.ts`) — Block, Level, GamePhase, GameState
+- [x] Game API client (`lib/api/game.ts`) — createSession, updateScore, completeSession, getHistory
+- [x] GameClient component (`app/game/GameClient.tsx`) — Full game UI with overlays
+- [x] Auth integration in game page — Login prompt, score saving for authenticated users
+- [x] Guest mode — Guests can play, no score saved, login prompt shown
+- [x] Update navigation — Added "Game" link, handle page links vs anchor links
+- [x] Export game types from `types/index.ts`
 
 ### Integration
-- [ ] End-to-end: guest plays game → no score saved
-- [ ] End-to-end: login → play game → score saved
-- [ ] Cross-origin communication working correctly
+- [x] End-to-end: guest plays game → no backend calls (local only)
+- [x] End-to-end: login → play game → session created → score saved → session completed
+- [x] Navigation links work (both anchor #links and page /links)
 
 ---
 
@@ -210,14 +223,14 @@
 
 ### Documents Status
 - [x] SYSTEM_OVERVIEW.md — Created
-- [x] CURRENT_STATE_AUDIT.md — Created, needs update for auth additions
+- [x] CURRENT_STATE_AUDIT.md — Created, updated 2026-03-21
 - [x] PRODUCT_SCOPE.md — Created
-- [x] TECH_ARCHITECTURE.md — Created, updated 2026-03-20
-- [x] PHASES_ROADMAP.md — Created, updated 2026-03-20
-- [x] OPEN_QUESTIONS.md — Created, updated 2026-03-20
-- [x] DECISION_LOG.md — Created, updated 2026-03-20
-- [x] EXECUTION_CHECKLIST.md — Created (this file), updated 2026-03-20
-- [x] MASTER_PLAN.md — Created, updated 2026-03-20
+- [x] TECH_ARCHITECTURE.md — Created, updated 2026-03-21
+- [x] PHASES_ROADMAP.md — Created, updated 2026-03-21
+- [x] OPEN_QUESTIONS.md — Created, updated 2026-03-21
+- [x] DECISION_LOG.md — Created, updated 2026-03-21
+- [x] EXECUTION_CHECKLIST.md — Created (this file), updated 2026-03-21
+- [x] MASTER_PLAN.md — Created, updated 2026-03-21
 - [x] SKILL_AGENTS.md — Created
-- [x] FRONTEND.md — Created
-- [x] SESSION_HANDOFF.md — Created, updated 2026-03-20
+- [x] FRONTEND.md — Created, updated 2026-03-21
+- [x] SESSION_HANDOFF.md — Created, updated 2026-03-21

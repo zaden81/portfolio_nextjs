@@ -1,6 +1,6 @@
 # Open Questions
 
-> Last updated: 2026-03-20
+> Last updated: 2026-03-21
 > Status: Questions organized by category. Owner must answer before relevant phase begins.
 
 ---
@@ -9,11 +9,11 @@
 
 | ID | Question | Impact | Blocks | Status |
 |---|---|---|---|---|
-| PD-001 | **What is the game genre / gameplay type?** (e.g., puzzle, arcade, clicker, merge, physics-based) | Determines frontend tech, game logic, scoring, schema | Phase 1B entirely | **OPEN — Critical** |
-| PD-002 | **Is the game real-time or turn-based?** | Determines if WebSocket is needed, API design pattern | Phase 1B | **OPEN** |
+| ~~PD-001~~ | ~~What is the game genre?~~ | ~~Drives game architecture~~ | ~~Phase 1B~~ | **Resolved**: Angry Birds style physics game (D-027) |
+| ~~PD-002~~ | ~~Real-time or turn-based?~~ | ~~API pattern~~ | ~~Phase 1B~~ | **Resolved**: Real-time physics simulation (D-028) |
 | PD-003 | **Can guests view the leaderboard (read-only)?** | Affects leaderboard API auth rules, frontend UX | Phase 1C | **OPEN** |
 | PD-008 | **What is the admin panel scope?** Should admin see: contact messages only? User accounts? Game data? All of the above? | Whether to build admin routes, what data to expose | Phase 2 (or late Phase 1) | **OPEN** |
-| PD-015 | **Should the game page have its own URL (e.g., `/game`) or be embedded in the portfolio?** | Frontend routing, SEO, shareability | Phase 1B | Recommended: `/game` route (R-005) |
+| ~~PD-015~~ | ~~Game page URL?~~ | ~~Frontend routing~~ | ~~Phase 1B~~ | **Resolved**: `/game` route (D-030) |
 
 ---
 
@@ -33,18 +33,18 @@
 | ID | Question | Impact | Blocks | Status |
 |---|---|---|---|---|
 | PD-004 | **Leaderboard type: all-time, daily, weekly, or combination?** | DB schema (need timestamp filtering), query complexity | Phase 1C | **OPEN** |
-| PD-005 | **What is the scoring metric?** (e.g., highest score, fastest time, longest survival, most items merged) | Depends on game genre, affects schema and sorting | Phase 1B, 1C | **OPEN** (blocked by PD-001) |
+| ~~PD-005~~ | ~~Scoring metric~~ | ~~Schema and sorting~~ | ~~Phase 1B, 1C~~ | **Resolved**: Points = blocks × 100 × level + bonuses (D-029) |
 | PD-006 | **Anti-cheat strategy?** Options: (a) server-side score validation, (b) client trust with rate limiting, (c) replay verification, (d) none in stage 1 | Backend complexity, game logic placement | Phase 1C | **OPEN** |
 | PD-018 | **Should leaderboard show user display names or anonymous IDs?** | Privacy policy, user profile requirements | Phase 1C | **OPEN** |
 
 ---
 
-## Guest Mode
+## Guest Mode — MOSTLY RESOLVED
 
 | ID | Question | Impact | Blocks | Status |
 |---|---|---|---|---|
-| PD-019 | **Should guest scores be shown temporarily in the UI during their session?** (local state only, not saved) | Frontend game state management | Phase 1B | **OPEN** |
-| PD-020 | **Should there be a prompt encouraging guests to log in after playing?** (e.g., "Log in to save your score!") | UX design, conversion flow | Phase 1B | **OPEN** |
+| ~~PD-019~~ | ~~Guest scores shown during session?~~ | ~~Frontend state~~ | ~~Phase 1B~~ | **Resolved**: Yes, score shown in UI during play; not saved to backend |
+| ~~PD-020~~ | ~~Prompt guests to log in?~~ | ~~UX~~ | ~~Phase 1B~~ | **Resolved**: Yes, login prompt banner shown above game canvas |
 
 ---
 
@@ -86,9 +86,11 @@
 - GitHub OAuth app setup (owner must register on GitHub Settings)
 
 ### Before Phase 1B can start:
-- PD-001 (game genre) — **critical blocker**
-- PD-002 (real-time vs turn-based)
-- PD-015 (game route strategy)
+- ~~PD-001 (game genre)~~ — **Resolved** (D-027)
+- ~~PD-002 (real-time vs turn-based)~~ — **Resolved** (D-028)
+- ~~PD-015 (game route strategy)~~ — **Resolved** (D-030)
+
+**Phase 1B is complete.**
 
 ### Before Phase 1C can complete:
 - PD-003 (guests view leaderboard?)

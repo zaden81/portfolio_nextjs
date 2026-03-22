@@ -7,7 +7,31 @@
       "Bash(cd \"D:/code/portfolio_nextjs\" && rm -f .next/dev/lock && npx kill-port 3000 2>/dev/null; taskkill //F //IM node.exe 2>/dev/null; sleep 2 && npm run dev)",
       "Bash(find:*)",
       "Bash(grep:*)",
-      "Bash(curl:*)"
+      "Bash(curl:*)",
+      "Bash(npx tsc:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(npm install:*)",
+      "Bash(dbmate --version)",
+      "Bash(npm list:*)",
+      "Bash(npx dbmate:*)",
+      "Bash(npx vercel:*)",
+      "Bash(xargs cat:*)",
+      "Bash(npx next:*)",
+      "Bash(dbmate up:*)",
+      "Bash(dbmate --help)",
+      "Bash(dbmate:*)",
+      "Bash(ls:*)",
+      "Bash(node:*)",
+      "Bash(kill %1)",
+      "Bash(pkill -f \"tsx.*server.ts\")",
+      "Bash(git push:*)",
+      "Bash(find /d/code/portfolio_nextjs -type f \\\\\\(-name CLAUDE.md -o -name .claude -o -path */.claude/* \\\\\\))",
+      "Bash(find /d/code/watermelon-game-api -type f \\\\\\(-name CLAUDE.md -o -name .claude -o -path */.claude/* \\\\\\))",
+      "Bash(find /d/code/platform-infra -type f \\\\\\(-name CLAUDE.md -o -name .claude -o -path */.claude/* \\\\\\))",
+      "Bash(find /d/code/portfolio_nextjs -type f \\\\\\(-name *game* -o -name *Game* \\\\\\))",
+      "Bash(npm run:*)",
+      "Bash(git status:*)"
     ]
   }
 }

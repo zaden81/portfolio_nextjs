@@ -1,7 +1,7 @@
 # Phases Roadmap
 
-> Last updated: 2026-03-20
-> Status: Living document — Phase 0 complete, Phase 1A in progress
+> Last updated: 2026-03-21
+> Status: Living document — Phase 0 complete, Phase 1A email/password done (OAuth pending), Phase 1B complete
 
 ---
 
@@ -10,8 +10,8 @@
 | Phase | Name | Goal | Depends On | Status |
 |---|---|---|---|---|
 | **Phase 0** | Foundation & Planning | Finalize all pending decisions, set up repos, migrations, CI baseline | Owner decisions | ✅ Complete |
-| **Phase 1A** | Backend Core | Auth + basic API structure in watermelon-game-api | Phase 0 | 🔄 In Progress (email/password done, OAuth pending) |
-| **Phase 1B** | Game MVP | Game frontend + game logic + score submission | Phase 1A + PD-001 (game genre) | Blocked by PD-001 |
+| **Phase 1A** | Backend Core | Auth + basic API structure in watermelon-game-api | Phase 0 | 🔄 Email/password done, OAuth pending |
+| **Phase 1B** | Game MVP | Game frontend + game logic + score submission | Phase 1A + PD-001 (game genre) | ✅ Complete |
 | **Phase 1C** | Leaderboard & Polish | Leaderboard, security hardening, portfolio integration | Phase 1B | Pending |
 | **Phase 1D** | Deploy & Launch | Production deploy, monitoring, final QA | Phase 1C | Pending |
 | **Phase 2** | Expansion | Additional projects, admin panel, analytics, etc. | Phase 1D | Future |
@@ -105,44 +105,42 @@ Auth system working in watermelon-game-api. Users can register, login, and authe
 
 ---
 
-## Phase 1B — Game MVP
+## Phase 1B — Game MVP ✅ COMPLETE
 
 ### Goal
 Playable game in browser. Authenticated users can submit scores.
 
 ### Input
-- Working auth from Phase 1A
-- Game genre decided (PD-001)
-- Game frontend technology chosen
+- Working auth from Phase 1A ✅
+- Game genre decided: Angry Birds style physics game (D-027) ✅
+- Game frontend technology: HTML5 Canvas + matter.js (D-031) ✅
 
 ### Tasks
 
-| # | Task | Depends On |
-|---|---|---|
-| 1B.1 | Design game data schema based on genre | PD-001, Phase 1A |
-| 1B.2 | Database migration: create `game_sessions` table | 1B.1 |
-| 1B.3 | Implement game logic API endpoints | 1B.2 |
-| 1B.4 | Build game frontend UI in portfolio_nextjs | PD-001, PD-012 |
-| 1B.5 | Integrate game UI with auth (login prompt, guest mode) | 1B.4, Phase 1A |
-| 1B.6 | Implement score submission flow | 1B.3, 1B.5 |
-| 1B.7 | Create API client layer in portfolio_nextjs | 1B.3 |
-| 1B.8 | Guest mode: allow play without auth, no score save | 1B.5 |
+| # | Task | Depends On | Status |
+|---|---|---|---|
+| 1B.1 | Database migration: `game_sessions` table | Phase 0 | ✅ Done |
+| 1B.2 | Implement game types, schemas, service | 1B.1 | ✅ Done |
+| 1B.3 | Implement game routes (6 endpoints) | 1B.2 | ✅ Done |
+| 1B.4 | Install matter-js physics engine | — | ✅ Done |
+| 1B.5 | Build game engine (physics, rendering, input) | 1B.4 | ✅ Done |
+| 1B.6 | Define 3 levels (Simple Tower, Double Stack, Pyramid) | — | ✅ Done |
+| 1B.7 | Build scoring system | — | ✅ Done |
+| 1B.8 | Create game API client | 1B.3 | ✅ Done |
+| 1B.9 | Build GameClient component + /game page | 1B.5, 1B.8 | ✅ Done |
+| 1B.10 | Integrate auth in game page (login prompt, guest mode) | 1B.9 | ✅ Done |
+| 1B.11 | Update navigation for /game route | 1B.9 | ✅ Done |
 
 ### Output
-- Playable game in browser
-- Guest can play, authenticated users' scores saved
-- Game accessible from portfolio
+- ✅ Playable physics game (3 levels) in browser at /game
+- ✅ Guest can play (no save)
+- ✅ Authenticated user's scores saved to database
+- ✅ API client abstraction in place
+- ✅ Navigation updated
 
-### Risks
-- Game genre decision (PD-001) blocks entire phase
-- Frontend game tech choice (Canvas, WebGL, DOM-based) depends on genre
-- API contract between frontend and backend needs careful design
-
-### Owner Decisions Required
-- PD-001 (game genre — **critical blocker**)
-- PD-002 (real-time vs turn-based)
-- PD-005 (scoring metric)
-- PD-006 (anti-cheat strategy)
+### Risks (resolved)
+- ~~PD-001 not decided → blocks entire phase~~ → **Resolved: Angry Birds style (D-027)**
+- ~~Frontend game tech choice depends on genre~~ → **Resolved: Canvas + matter.js (D-031)**
 
 ---
 

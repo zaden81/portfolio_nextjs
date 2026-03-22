@@ -1,7 +1,7 @@
 # Technical Architecture
 
-> Last updated: 2026-03-20
-> Status: Stage 1 architecture — auth (email/password) implemented, OAuth pending
+> Last updated: 2026-03-21
+> Status: Stage 1 architecture — auth (email/password) implemented, OAuth pending, game MVP complete
 
 ---
 
@@ -58,7 +58,7 @@ platform-infra ──migrations────────────────�
 
 ## 3. Frontend Architecture (portfolio_nextjs)
 
-### Current Architecture (verified from code — updated 2026-03-20)
+### Current Architecture (verified from code — updated 2026-03-21)
 
 ```
 app/
@@ -67,6 +67,9 @@ app/
 ├── globals.css         → Theme tokens (CSS variables for Tailwind v4)
 ├── login/page.tsx      → Login page (email + password)
 ├── register/page.tsx   → Register page (name + email + password)
+├── game/
+│   ├── page.tsx        → Game page (server component wrapper with metadata)
+│   └── GameClient.tsx  → Full game UI: canvas, overlays, auth integration
 └── api/
     └── contact/        → POST: validate + insert message
 
@@ -74,17 +77,18 @@ components/
 ├── ui/                 → Stateless primitives (Button, Card, Input, etc.)
 ├── sections/           → Page sections (each self-contained folder)
 │   ├── Auth/           → LoginForm, RegisterForm
-│   └── Navbar/         → NavbarClient (auth-aware), MobileMenu (auth-aware)
+│   └── Navbar/         → NavbarClient (auth-aware, page-link-aware), MobileMenu
 ├── icons/              → SVG components
 └── providers/          → ThemeProvider
 
-config/                 → Site metadata, navigation, personal info
+config/                 → Site metadata, navigation (incl. Game link), personal info
 data/                   → Projects, skills, social links (typed constants)
-types/                  → TypeScript interfaces (including auth types)
+types/                  → TypeScript interfaces (including auth + game types)
 lib/
 ├── utils.ts            → cn() utility
-├── api/                → Response helpers
+├── api/                → Response helpers + game API client
 ├── auth/               → AuthProvider, useAuth hook, authFetch, authApi client
+├── game/               → Game engine, physics, levels, scoring, types, renderer
 ├── db/                 → Client, queries
 └── validations/        → Env + contact schema (Zod)
 ```
@@ -93,13 +97,15 @@ lib/
 
 ```
 app/
-├── (existing sections + auth pages)
-├── game/               → Game page/route (TBD: embedded or separate page)
+├── (existing sections + auth pages + game) ✅
+└── (leaderboard integration — Phase 1C)
 ```
 
-**Auth client**: Already implemented in `lib/auth/` — `AuthProvider`, `useAuth`, `authFetch`, `authApi`.
+**Auth client**: Implemented in `lib/auth/`.
+**Game API client**: Implemented in `lib/api/game.ts` — uses `authFetch`.
+**Game engine**: Implemented in `lib/game/` — Matter.js physics + Canvas 2D rendering.
 
-**Pending**: Game API client layer for game-specific calls (can extend existing `authFetch`).
+**Pending**: Leaderboard UI (Phase 1C).
 
 ---
 
@@ -110,44 +116,41 @@ app/
 ```
 watermelon-game-api/
 ├── src/
-│   ├── app.ts                  → Express/Fastify setup, middleware
+│   ├── app.ts                  → Fastify setup, middleware, CORS, rate limiting
 │   ├── server.ts               → Entry point
 │   ├── config/                 → Environment config, constants
 │   ├── modules/
-│   │   ├── auth/
-│   │   │   ├── auth.controller.ts
+│   │   ├── auth/               → ✅ Implemented
 │   │   │   ├── auth.service.ts
 │   │   │   ├── auth.routes.ts
-│   │   │   ├── strategies/     → Google, GitHub, email/password
-│   │   │   └── auth.types.ts
-│   │   ├── game/
-│   │   │   ├── game.controller.ts
+│   │   │   ├── auth.schemas.ts
+│   │   │   ├── auth.types.ts
+│   │   │   ├── jwt.ts
+│   │   │   └── index.ts
+│   │   ├── game/               → ✅ Implemented
 │   │   │   ├── game.service.ts
 │   │   │   ├── game.routes.ts
-│   │   │   └── game.types.ts
-│   │   └── leaderboard/
-│   │       ├── leaderboard.controller.ts
+│   │   │   ├── game.schemas.ts
+│   │   │   ├── game.types.ts
+│   │   │   └── index.ts
+│   │   └── leaderboard/        → TODO (Phase 1C)
 │   │       ├── leaderboard.service.ts
 │   │       ├── leaderboard.routes.ts
 │   │       └── leaderboard.types.ts
 │   ├── middleware/
-│   │   ├── auth.middleware.ts   → JWT/session verification
-│   │   ├── error.middleware.ts  → Global error handler
-│   │   └── rate-limit.middleware.ts
+│   │   ├── auth.ts             → JWT verification (requireAuth)
+│   │   └── error-handler.ts    → Global error handler
 │   ├── shared/
 │   │   ├── db.ts               → Database client
 │   │   ├── types.ts            → Shared types
-│   │   └── errors.ts           → Custom error classes
+│   │   └── errors.ts           → Custom error classes (AppError, NotFoundError, etc.)
 │   └── utils/
-├── tests/
 ├── package.json
 ├── tsconfig.json
 └── .env.example
 ```
 
-**Pattern**: Modular monolith — modules are organized by domain (auth, game, leaderboard) but deployed as a single service. Each module has controller → service → data access layers.
-
-**Tech stack pending** (PD-009): Recommended Node.js + TypeScript + Express or Fastify. Owner must confirm.
+**Pattern**: Modular monolith — modules are organized by domain (auth, game, leaderboard) but deployed as a single service. Routes call service functions directly (no controller layer — kept simple for stage 1).
 
 ---
 
@@ -285,17 +288,22 @@ refresh_tokens (
 )
 -- Index: idx_refresh_tokens_hash ON refresh_tokens(token_hash)
 
--- TODO: Game (schema depends on game genre — PENDING PD-001)
+-- Implemented (2026-03-21)
 game_sessions (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  user_id UUID REFERENCES users(id),   -- NULL for guest sessions
-  score INTEGER NOT NULL,
-  duration_seconds INTEGER,
-  completed_at TIMESTAMPTZ DEFAULT NOW()
+  user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  score INTEGER NOT NULL DEFAULT 0,
+  levels_completed INTEGER NOT NULL DEFAULT 0,
+  status VARCHAR(20) NOT NULL DEFAULT 'active',  -- active | completed | abandoned
+  completed_at TIMESTAMPTZ,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
 )
+-- Index: idx_game_sessions_user_id ON game_sessions(user_id)
+-- Index: idx_game_sessions_status ON game_sessions(status)
 
 -- TODO: Leaderboard (may be a view or materialized view)
--- Schema depends on PD-004 (leaderboard type) and PD-005 (scoring metric)
+-- Schema depends on PD-004 (leaderboard type)
 ```
 
 **Note**: `users` table currently only supports email/password auth. When Google/GitHub OAuth is added, columns like `auth_provider`, `provider_id`, `avatar_url` may be added via new migration.

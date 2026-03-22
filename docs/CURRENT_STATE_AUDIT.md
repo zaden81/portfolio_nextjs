@@ -1,6 +1,6 @@
 # Current State Audit
 
-> Last updated: 2026-03-18
+> Last updated: 2026-03-21
 > Source: Full source code audit of `portfolio_nextjs` repo
 > Method: Every file read and analyzed
 
@@ -16,9 +16,10 @@
 | Language | TypeScript (strict mode) |
 | Styling | Tailwind CSS v4 |
 | Database | Neon Serverless Postgres |
+| Physics Engine | matter-js 0.20.0 |
 | Font | DM Sans (Google Fonts via next/font) |
 | Package manager | npm |
-| Total source files (excl. node_modules) | ~50 files |
+| Total source files (excl. node_modules) | ~70 files |
 
 ---
 
@@ -27,18 +28,23 @@
 ```
 portfolio_nextjs/
 ├── app/                    ✅ Clean App Router structure
-│   ├── layout.tsx          ✅ Root layout with font, metadata, theme
+│   ├── layout.tsx          ✅ Root layout with font, metadata, theme, AuthProvider
 │   ├── page.tsx            ✅ Single page composing all sections
 │   ├── globals.css         ✅ Theme tokens via CSS variables
+│   ├── login/page.tsx      ✅ Login page (email + password)
+│   ├── register/page.tsx   ✅ Register page (name + email + password)
+│   ├── game/               ✅ Game page + GameClient
+│   │   ├── page.tsx        ✅ Server wrapper with metadata
+│   │   └── GameClient.tsx  ✅ Full game UI with canvas + overlays
 │   └── api/
-│       ├── contact/route.ts    ✅ POST endpoint with validation
-│       └── messages/route.ts   ⚠️ GET endpoint — no auth protection
+│       └── contact/route.ts    ✅ POST endpoint with validation + rate limiting
 │
 ├── components/
 │   ├── icons/              ✅ 7 SVG icon components
 │   ├── providers/          ✅ ThemeProvider (next-themes wrapper)
-│   ├── sections/           ✅ 6 sections, each with barrel export
-│   │   ├── Navbar/         ✅ Server + Client split (Navbar → NavbarClient)
+│   ├── sections/           ✅ 7 sections, each with barrel export
+│   │   ├── Auth/           ✅ LoginForm, RegisterForm
+│   │   ├── Navbar/         ✅ Server + Client split, auth-aware, page-link-aware
 │   │   ├── Hero/           ✅ Hero + HeroScrollButton + WaveDivider
 │   │   ├── About/          ✅ About + MyStory + InfoCard + SkillsGrid
 │   │   ├── Projects/       ✅ Projects + ProjectCard
@@ -50,11 +56,13 @@ portfolio_nextjs/
 ├── data/                   ✅ Typed content data constants
 ├── lib/
 │   ├── utils.ts            ✅ cn() utility
-│   ├── api/                ✅ Response helpers
-│   ├── db/                 ✅ Client, schema, queries
+│   ├── api/                ✅ Response helpers + game API client
+│   ├── auth/               ✅ AuthProvider, useAuth, authFetch, authApi
+│   ├── game/               ✅ Engine, physics, levels, scoring, types, renderer
+│   ├── db/                 ✅ Client, queries
 │   └── validations/        ✅ Env + contact schema (Zod)
 │
-├── types/                  ✅ 7 type files with barrel export
+├── types/                  ✅ 9 type files with barrel export (incl. auth + game)
 └── public/                 ✅ Images organized in subfolders
 ```
 
@@ -66,8 +74,8 @@ portfolio_nextjs/
 
 | Component | Type | Client? | Notes |
 |---|---|---|---|
-| Navbar → NavbarClient | Section | Yes | Scroll detection, mobile menu toggle |
-| MobileMenu | Section | No (props-driven) | Rendered by NavbarClient |
+| Navbar → NavbarClient | Section | Yes | Scroll detection, mobile menu toggle, page link routing |
+| MobileMenu | Section | No (props-driven) | Rendered by NavbarClient, handles page vs anchor links |
 | Hero | Section | No | Server component |
 | HeroScrollButton | Section | Yes | Smooth scroll click handler |
 | WaveDivider | Section | No | SVG wave divider |
@@ -82,6 +90,9 @@ portfolio_nextjs/
 | ContactInfo | Section | No | Email + phone + social links |
 | SocialLinks | Section | No | Reads from data |
 | Footer | Section | No | Copyright with dynamic year |
+| LoginForm | Auth | Yes | Email + password form, link to register |
+| RegisterForm | Auth | Yes | Name + email + password form, link to login |
+| GameClient | Game | Yes | Full game: canvas, physics engine, overlays, auth integration |
 | LoadingScreen | UI | Yes | Min 2s loading + fade-out |
 | ThemeToggle | UI | Yes | next-themes toggle |
 | Button | UI | No | Variant/size system |
@@ -93,14 +104,14 @@ portfolio_nextjs/
 | StatusAlert | UI | No | Success/error alert |
 | SocialLinkButton | UI | No | Icon link button |
 
-**Assessment**: Clean component architecture. Proper server/client split. Barrel exports throughout.
+**Assessment**: Clean component architecture. Proper server/client split. Barrel exports throughout. Auth and game modules well-integrated.
 
 ### 3.2 Data Layer
 
 | Module | Location | Responsibility |
 |---|---|---|
 | Site config | `config/site.ts` | Site name, description, OG/Twitter metadata |
-| Navigation config | `config/navigation.ts` | Nav links, logo text, phone number |
+| Navigation config | `config/navigation.ts` | Nav links (Home, About, Projects, Game), phone number |
 | Personal config | `config/personal.ts` | Name, birthday, phone, email, bio |
 | Projects data | `data/projects.ts` | Project list (2 projects) |
 | Skills data | `data/skills.ts` | Skill categories (4 categories) |
@@ -113,32 +124,49 @@ portfolio_nextjs/
 | Component | File | Responsibility |
 |---|---|---|
 | Client | `lib/db/client.ts` | Lazy singleton Neon client |
-| Schema | `lib/db/schema.ts` | Auto-create `messages` table |
-| Queries | `lib/db/queries.ts` | `insertMessage()`, `getMessages()` |
+| Queries | `lib/db/queries.ts` | `insertMessage()` |
 
-**Schema**:
-```sql
-messages (
-  id SERIAL PRIMARY KEY,
-  name VARCHAR(100) NOT NULL,
-  email VARCHAR(120) NOT NULL,
-  message TEXT NOT NULL,
-  created_at TIMESTAMP DEFAULT NOW()
-)
-```
+**Schema** (managed by dbmate in platform-infra):
+- `messages` — Contact form submissions
+- `users` — User accounts (email/password auth)
+- `refresh_tokens` — JWT refresh token hashes
+- `game_sessions` — Game play sessions with scores
 
-**Assessment**: Minimal but functional. Auto-migration pattern (ensureSchema) is fine for a single table but won't scale — should migrate to proper migration tool before adding more tables.
+**Assessment**: Clean separation. Migrations managed externally via dbmate in platform-infra repo.
 
-### 3.4 API Layer
+### 3.4 Auth Layer
+
+| Component | File | Responsibility |
+|---|---|---|
+| AuthProvider | `lib/auth/provider.tsx` | React Context — manage auth state, auto-refresh on mount |
+| authFetch | `lib/auth/api.ts` | Fetch wrapper with Bearer token attachment |
+| authApi | `lib/auth/api.ts` | API client for auth endpoints (login, register, refresh, logout, me) |
+| useAuth | `lib/auth/index.ts` | Hook to access auth state |
+
+**Assessment**: Well-structured auth client. Token refresh handled transparently. Clean separation of concerns.
+
+### 3.5 Game Layer
+
+| Component | File | Responsibility |
+|---|---|---|
+| Engine | `lib/game/engine.ts` | Matter.js world, game loop, rendering, input |
+| Physics | `lib/game/physics.ts` | Body creation (ground, walls, blocks, projectile, slingshot) |
+| Levels | `lib/game/levels.ts` | 3 level definitions with block layouts |
+| Scoring | `lib/game/scoring.ts` | Score calculation with bonuses |
+| Types | `lib/game/types.ts` | Block, Level, GamePhase, GameState |
+| API Client | `lib/api/game.ts` | Game session CRUD via authFetch |
+
+**Assessment**: Clean game architecture. Physics engine encapsulated. Levels are data-driven. Easy to add more levels or modify scoring.
+
+### 3.6 API Layer
 
 | Route | Method | Auth | Validation | Notes |
 |---|---|---|---|---|
-| `/api/contact` | POST | None | Zod | Inserts contact message to DB |
-| `/api/messages` | GET | **None** | None | Returns ALL messages — security concern |
+| `/api/contact` | POST | None | Zod | Inserts contact message to DB, rate limited 5/min |
 
-**Assessment**: `/api/messages` exposes all contact submissions to anyone. This is either a dev-only endpoint or needs auth before production.
+**Assessment**: Single API route in portfolio_nextjs. Game and auth endpoints are in watermelon-game-api (separate repo).
 
-### 3.5 Validation Layer
+### 3.7 Validation Layer
 
 | Schema | File | Purpose |
 |---|---|---|
@@ -166,20 +194,22 @@ messages (
 
 ## 5. Weaknesses & Risks
 
-| # | Issue | Severity | Category |
-|---|---|---|---|
-| 1 | `/api/messages` has no auth — exposes all contact data publicly | **High** | Security |
-| 2 | No tests of any kind | **Medium** | Quality |
-| 3 | `ensureSchema()` auto-migration won't scale beyond 1 table | **Medium** | Database |
-| 4 | `images.unoptimized: true` in next.config — all images unoptimized | **Low** | Performance |
-| 5 | No rate limiting on `/api/contact` — could be abused | **Medium** | Security |
-| 6 | No CSRF protection on contact form | **Low** | Security |
-| 7 | No deploy configuration exists | **Medium** | DevOps |
-| 8 | No CI/CD pipeline | **Medium** | DevOps |
-| 9 | No error monitoring / logging infrastructure | **Low** | Observability |
-| 10 | `.gitignore` has Prisma entry but Prisma not used — dead artifact | **Trivial** | Cleanup |
-| 11 | `PHONE_NUMBER` in navigation.ts and `PHONE` in personal.ts — duplicated | **Trivial** | Consistency |
-| 12 | `LOGO_TEXT` exported from navigation.ts but not used in NavbarClient (uses Image) | **Trivial** | Cleanup |
+| # | Issue | Severity | Category | Status |
+|---|---|---|---|---|
+| 1 | ~~`/api/messages` has no auth~~ | ~~High~~ | ~~Security~~ | ✅ Removed (D-019) |
+| 2 | No tests of any kind | **Medium** | Quality | Open |
+| 3 | ~~`ensureSchema()` auto-migration won't scale~~ | ~~Medium~~ | ~~Database~~ | ✅ Migrated to dbmate |
+| 4 | `images.unoptimized: true` in next.config — all images unoptimized | **Low** | Performance | Open |
+| 5 | ~~No rate limiting on `/api/contact`~~ | ~~Medium~~ | ~~Security~~ | ✅ Added (5 req/min by IP) |
+| 6 | No CSRF protection on contact form | **Low** | Security | Open |
+| 7 | ~~No deploy configuration~~ | ~~Medium~~ | ~~DevOps~~ | Partial — Vercel pending |
+| 8 | No CI/CD pipeline | **Medium** | DevOps | Open (deferred to Stage 2) |
+| 9 | No error monitoring / logging infrastructure | **Low** | Observability | Open |
+| 10 | ~~`.gitignore` has Prisma entry~~ | ~~Trivial~~ | ~~Cleanup~~ | ✅ Removed |
+| 11 | ~~Duplicate PHONE constants~~ | ~~Trivial~~ | ~~Consistency~~ | ✅ Consolidated |
+| 12 | ~~Unused `LOGO_TEXT` export~~ | ~~Trivial~~ | ~~Cleanup~~ | ✅ Removed |
+| 13 | Game score validation is client-side only | **Medium** | Security | Open — deferred to Phase 1C anti-cheat |
+| 14 | Google + GitHub OAuth not yet implemented | **Medium** | Auth | Open — pending Phase 1A OAuth |
 
 ---
 
@@ -200,9 +230,7 @@ messages (
 
 | Boundary | Issue |
 |---|---|
-| Presentation ↔ Data access | `ContactForm.tsx` calls `fetch("/api/contact")` directly — acceptable for now but would benefit from an API client layer if more endpoints are added |
 | Config vs Data | `personal.ts` exports `EMAIL` and `PHONE` separately AND also inside `PERSONAL_INFO_ITEMS` — minor duplication |
-| Navigation config | `PHONE_NUMBER` exists in both `navigation.ts` and `personal.ts` (`PHONE`) — same data, two locations |
 
 ---
 
@@ -210,9 +238,11 @@ messages (
 
 | # | Item | When it becomes debt | Recommended action |
 |---|---|---|---|
-| 1 | Auto-migration via `ensureSchema()` | When adding users, game_scores, leaderboard tables | Migrate to proper migration tool (in platform-infra) |
-| 2 | No API client abstraction | When game frontend needs multiple API calls to watermelon-game-api | Create API client layer |
-| 3 | Unprotected `/api/messages` | Before production deploy | Add auth or remove endpoint |
-| 4 | No rate limiting | Before production deploy | Add rate limiting to contact endpoint |
-| 5 | No error boundaries | When users encounter runtime errors | Add React error boundaries |
+| 1 | ~~Auto-migration via `ensureSchema()`~~ | ~~When adding more tables~~ | ✅ Done — migrated to dbmate |
+| 2 | ~~No API client abstraction~~ | ~~When game needs API calls~~ | ✅ Done — `lib/api/game.ts` + `lib/auth/api.ts` |
+| 3 | ~~Unprotected `/api/messages`~~ | ~~Before production~~ | ✅ Done — removed |
+| 4 | ~~No rate limiting~~ | ~~Before production~~ | ✅ Done — IP-based rate limiting |
+| 5 | No error boundaries | When users encounter runtime errors | Add React error boundaries (Phase 1C) |
 | 6 | Image optimization disabled | When page performance matters | Enable Vercel image optimization or use proper config |
+| 7 | No test coverage | When codebase grows further | Add unit + integration tests |
+| 8 | Client-side score validation only | When leaderboard goes live | Server-side validation (Phase 1C anti-cheat) |

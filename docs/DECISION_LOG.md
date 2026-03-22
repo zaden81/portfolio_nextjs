@@ -1,6 +1,6 @@
 # Decision Log
 
-> Last updated: 2026-03-20
+> Last updated: 2026-03-21
 > Status: Living document — updated as decisions are made
 
 ---
@@ -46,14 +46,18 @@
 | D-024 | Frontend token storage | Access token in memory, refresh token in localStorage | Dev | Access token not persisted = more secure; refresh in localStorage allows session restoration on page reload | Frontend auth flow |
 | D-025 | Email verification | Not required in Phase 1A | Owner | Reduces scope; no email provider needed | Unverified emails accepted |
 | D-026 | Password reset | Deferred to later | Owner | Reduces Phase 1A scope; users can create new account | No reset flow in stage 1 |
+| D-027 | Game genre | Angry Birds style physics game (slingshot + block destruction) | Owner | Physics-based gameplay showcases Canvas/matter.js skills; engaging and replayable | Drives all game-specific decisions |
+| D-028 | Real-time vs turn-based | Real-time physics simulation (client-side, matter.js) | Owner (resolved PD-002) | Physics game requires real-time simulation; no WebSocket needed — client runs physics, server tracks sessions/scores | Frontend game architecture |
+| D-029 | Scoring metric | Points: blocks destroyed × 100 × level, bonus for remaining projectiles (200 each) + 500 level clear bonus | Owner (resolved PD-005) | Simple, transparent scoring that rewards skill and efficiency | Game scoring, leaderboard sorting |
+| D-030 | Game route | Dedicated `/game` route in portfolio_nextjs | Owner (confirmed R-005) | Clean URL, shareable, better SEO | Frontend routing |
+| D-031 | Game frontend technology | HTML5 Canvas + matter.js physics engine | Dev | Best fit for physics-based game; lightweight, no WebGL needed | Game rendering, performance |
+| D-032 | Game levels | 3 levels: Simple Tower, Double Stack, Pyramid — static data served from API | Dev | Progressive difficulty; enough for MVP; easy to add more later | Game content, API contract |
 
 ---
 
 ## Recommended Decisions (Awaiting Owner Confirmation)
 
-| ID | Title | Recommendation | Rationale | Alternatives | Impact |
-|---|---|---|---|---|---|
-| R-005 | Game route (PD-012) | Dedicated `/game` route in portfolio_nextjs | Clean URL, shareable, better SEO, clear separation from portfolio sections | Embedded in page (cluttered), subdomain (complex setup) | Frontend routing |
+> No pending recommendations at this time.
 
 ---
 
@@ -61,11 +65,8 @@
 
 | ID | Title | Options | Blocks | Notes |
 |---|---|---|---|---|
-| PD-001 | Game genre / gameplay | Puzzle, arcade, clicker, merge, physics, etc. | Phase 1B entirely | **Critical blocker** — everything game-related depends on this |
-| PD-002 | Real-time vs turn-based | Real-time (needs game loop), Turn-based (request/response) | Phase 1B | Affects WebSocket decision |
 | PD-003 | Guest leaderboard viewing | (a) Guests can view, (b) Login required to view | Phase 1C | UX and conversion trade-off |
 | PD-004 | Leaderboard type | All-time, daily, weekly, combination | Phase 1C | DB schema impact |
-| PD-005 | Scoring metric | Depends on game genre | Phase 1B, 1C | Cannot design until PD-001 decided |
 | PD-006 | Anti-cheat | Server validation, rate limiting, replay verification, none | Phase 1C | Complexity vs integrity trade-off |
 | PD-007 | PaaS provider | Render, Railway, Fly.io | Phase 1D | Each has different pricing/DX |
 | PD-008 | Admin panel scope | Contact messages, user accounts, game data, all | Phase 2 | Not blocking stage 1 |

@@ -1,4 +1,4 @@
-# Session Handoff — 2026-03-20
+# Session Handoff — 2026-03-21
 
 > Tạo lúc kết thúc session. Dùng để resume context khi bắt đầu session mới.
 
@@ -6,7 +6,7 @@
 
 ## Trạng thái hiện tại
 
-**Phase 0 hoàn thành. Phase 1A (Auth — Email/Password) hoàn thành.**
+**Phase 0 hoàn thành. Phase 1A (Auth — Email/Password) hoàn thành. Phase 1B (Game MVP) hoàn thành.**
 
 ### Session 1 (2026-03-18) — Foundation & Planning
 
@@ -38,6 +38,24 @@
 | 1A.10 | Update Navbar + MobileMenu: show user name/logout khi authenticated | portfolio_nextjs |
 | 1A.11 | Test toàn bộ 8 auth endpoints bằng curl — tất cả pass | watermelon-game-api |
 
+### Session 3 (2026-03-21) — Game MVP (Phase 1B)
+
+| Step | Mô tả | Repo |
+|---|---|---|
+| 1B.1 | Tạo `game_sessions` migration | platform-infra |
+| 1B.2 | Chạy `dbmate up` — tạo game_sessions table trên Neon | platform-infra |
+| 1B.3 | Implement game module: types, schemas, service, routes (6 endpoints) | watermelon-game-api |
+| 1B.4 | Install `matter-js` + `@types/matter-js` | portfolio_nextjs |
+| 1B.5 | Tạo game engine (`lib/game/engine.ts`) — Matter.js physics, slingshot, game loop, canvas rendering | portfolio_nextjs |
+| 1B.6 | Tạo physics helpers (`lib/game/physics.ts`) — ground, walls, blocks, projectile, slingshot | portfolio_nextjs |
+| 1B.7 | Tạo 3 levels (`lib/game/levels.ts`) — Simple Tower, Double Stack, Pyramid | portfolio_nextjs |
+| 1B.8 | Tạo scoring system (`lib/game/scoring.ts`) — block score × level, bonuses | portfolio_nextjs |
+| 1B.9 | Tạo game types + renderer (`lib/game/types.ts`, `renderer.ts`) | portfolio_nextjs |
+| 1B.10 | Tạo game API client (`lib/api/game.ts`) — dùng authFetch | portfolio_nextjs |
+| 1B.11 | Tạo `/game` page + GameClient component — full game UI với overlays | portfolio_nextjs |
+| 1B.12 | Update navigation — thêm "Game" link, xử lý page links vs anchor links | portfolio_nextjs |
+| 1B.13 | Export game types từ `types/index.ts` | portfolio_nextjs |
+
 ### Đã push lên remote
 
 Tất cả 3 repos đã push. Commits:
@@ -45,9 +63,72 @@ Tất cả 3 repos đã push. Commits:
 | Repo | Commit | Message |
 |---|---|---|
 | platform-infra | `56fc6c3` | feat: add users and refresh_tokens migrations |
+| platform-infra | `45d421e` | feat: add game_sessions table migration |
 | watermelon-game-api | `4a14762` | feat: implement email/password auth with JWT |
 | watermelon-game-api | `f21d106` | fix: load .env via --env-file flag in dev and start scripts |
+| watermelon-game-api | `be71218` | feat: implement game module (sessions, scores, levels) |
 | portfolio_nextjs | `da73c9c` | feat: add auth UI (login, register, auth context) |
+| portfolio_nextjs | `8cb4a44` | feat: add Angry Birds style physics game (Phase 1B) |
+
+---
+
+## Game System — Tóm tắt kỹ thuật
+
+### Game: Block Smasher (Angry Birds style)
+
+**Gameplay**: Kéo slingshot để bắn projectile, phá hủy tất cả blocks đỏ. 3 levels với độ khó tăng dần.
+
+**Tech stack**: HTML5 Canvas + matter.js (physics engine)
+
+### Backend (watermelon-game-api)
+
+**Game endpoints:**
+
+| Method | Path | Auth | Mô tả |
+|---|---|---|---|
+| POST | `/game/sessions` | Bearer | Tạo game session mới |
+| PATCH | `/game/sessions/:id/score` | Bearer | Update score (ownership check) |
+| POST | `/game/sessions/:id/complete` | Bearer | Hoàn thành session |
+| GET | `/game/sessions/me` | Bearer | Lịch sử sessions của user |
+| GET | `/game/levels` | No | Trả static level data (3 levels) |
+| GET | `/game/health` | No | Health check |
+
+**Database schema:**
+```sql
+game_sessions (
+  id UUID PK,
+  user_id UUID FK → users(id) ON DELETE CASCADE,
+  score INTEGER DEFAULT 0,
+  levels_completed INTEGER DEFAULT 0,
+  status VARCHAR(20) DEFAULT 'active',  -- active | completed | abandoned
+  completed_at TIMESTAMPTZ,
+  created_at TIMESTAMPTZ,
+  updated_at TIMESTAMPTZ
+)
+```
+
+### Frontend (portfolio_nextjs)
+
+**Game engine architecture:**
+```
+lib/game/
+├── engine.ts       → Main engine: Matter.js physics, game loop, canvas 2D rendering, input handling
+├── physics.ts      → Body creation (ground, walls, blocks, projectile, slingshot constraint)
+├── levels.ts       → 3 levels: Simple Tower (3 blocks), Double Stack (5), Pyramid (8)
+├── scoring.ts      → Score = blocks × 100 × level + bonus (projectiles left × 200 + 500 clear)
+├── types.ts        → Block, Level, GamePhase, GameState interfaces
+└── renderer.ts     → Re-export canvas constants
+```
+
+**Game flow:**
+1. Start → tạo session (nếu authenticated)
+2. Load level → setup physics bodies + slingshot
+3. Drag/release slingshot → launch projectile → physics simulation
+4. Blocks destroyed → score tính → level complete hoặc fail
+5. Next level / retry / end game
+6. Kết thúc → update score trên server → complete session
+
+**Guest mode**: Guests chơi được nhưng không save score. Hiện login prompt.
 
 ---
 
@@ -67,53 +148,35 @@ Tất cả 3 repos đã push. Commits:
 | GET | `/auth/health` | No | Health check cho auth module |
 
 **Token strategy:** JWT access token (15m) + rotating refresh token (7d)
-- Access token: JWT signed với `JWT_SECRET`, chứa `sub`, `email`, `name`
-- Refresh token: random 40 bytes hex, lưu SHA-256 hash trong DB
-- Rotation: mỗi lần refresh → xóa token cũ, tạo token mới
-
-**Security:**
-- Password: bcryptjs với salt rounds = 12
-- Rate limiting per route (10 req/min cho register/login, 30 cho refresh/logout, 100 cho /me)
-- Zod validation trên tất cả request bodies
-- Global error handler: AppError → status code, ZodError → 400, FastifyError → appropriate status
 
 ### Frontend (portfolio_nextjs)
 
 **Auth flow:**
 - `AuthProvider` wraps app — tự động refresh token on mount
-- Access token lưu in-memory (JS variable) — không persist
-- Refresh token lưu trong `localStorage`
+- Access token lưu in-memory, refresh token lưu localStorage
 - `authFetch()` wrapper tự attach `Authorization: Bearer` header
-- Login/Register forms reuse existing `Input`, `Button`, `StatusAlert` components
-
-**Pages:**
-- `/login` — email + password form, link tới register
-- `/register` — name + email + password form, link tới login
-
-**Navbar:**
-- Authenticated: hiện user name + "Logout" button
-- Unauthenticated: hiện "Login" link
 
 ---
 
-## Decisions đã chốt trong session 2
+## Decisions đã chốt trong session 3
 
 | ID | Decision |
 |---|---|
-| D-021 | Token strategy: JWT + refresh token rotation (xác nhận R-004) |
-| D-022 | Password hashing: bcryptjs, 12 rounds |
-| D-023 | Refresh token storage: SHA-256 hash trong `refresh_tokens` table |
-| D-024 | Frontend token storage: access in memory, refresh in localStorage |
-| D-025 | No email verification trong Phase 1A (PD-016 resolved: No) |
-| D-026 | No password reset trong Phase 1A (PD-010 resolved: deferred) |
+| D-027 | Game genre: Angry Birds style physics game (slingshot + block destruction) |
+| D-028 | Real-time physics simulation (client-side, matter.js) — không cần WebSocket |
+| D-029 | Scoring: blocks × 100 × level + bonuses (projectiles left × 200 + level clear 500) |
+| D-030 | Game route: `/game` (confirmed R-005) |
+| D-031 | Game technology: HTML5 Canvas + matter.js |
+| D-032 | 3 levels: Simple Tower, Double Stack, Pyramid |
 
 ## Pending decisions quan trọng
 
 | ID | Quyết định | Ảnh hưởng |
 |---|---|---|
-| **PD-001** | **Game genre / gameplay** | **Blocks toàn bộ Phase 1B** |
-| PD-002 | Real-time vs turn-based | Blocks Phase 1B |
-| PD-007 | PaaS provider (Render/Railway/Fly.io) | Blocks Phase 1D |
+| PD-003 | Guest có xem leaderboard không? | Phase 1C |
+| PD-004 | Leaderboard type (all-time/daily/weekly) | Phase 1C |
+| PD-006 | Anti-cheat strategy | Phase 1C |
+| PD-007 | PaaS provider (Render/Railway/Fly.io) | Phase 1D |
 | D-002 | Google + GitHub OAuth | Phase 1A chưa hoàn thành phần OAuth |
 
 ---
@@ -122,10 +185,11 @@ Tất cả 3 repos đã push. Commits:
 
 | Step | Việc cần làm | Ghi chú |
 |---|---|---|
-| 1 | Chạy `dbmate up` trên production | Tạo users + refresh_tokens tables |
+| 1 | Chạy `dbmate up` trên production | Tạo users + refresh_tokens + game_sessions tables |
 | 2 | Set `JWT_SECRET` env var trên server | Cho watermelon-game-api |
 | 3 | Set `NEXT_PUBLIC_API_URL` trên Vercel | Trỏ tới API URL production |
 | 4 | Test auth flow end-to-end trên production | Register → Login → /auth/me |
+| 5 | Test game flow end-to-end trên production | Login → Play → Score saved |
 
 ---
 
@@ -135,5 +199,5 @@ Tất cả 3 repos đã push. Commits:
 2. Đọc `docs/EXECUTION_CHECKLIST.md` để biết chi tiết checklist
 3. Đọc `docs/DECISION_LOG.md` để biết decisions đã chốt vs pending
 4. **Nếu tiếp tục Phase 1A**: implement Google + GitHub OAuth
-5. **Nếu chuyển Phase 1B**: cần PD-001 (game genre) đã chốt
+5. **Nếu chuyển Phase 1C**: implement leaderboard (cần PD-003, PD-004, PD-006)
 6. **Nếu deploy**: thực hiện các bước server ở trên

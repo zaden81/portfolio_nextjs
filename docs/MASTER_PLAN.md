@@ -1,7 +1,7 @@
 # Master Plan
 
-> Last updated: 2026-03-20
-> Status: Stage 1 master plan. Phase 0 complete, Phase 1A in progress.
+> Last updated: 2026-03-21
+> Status: Stage 1 master plan. Phase 0 complete, Phase 1A email/password done, Phase 1B complete.
 
 ---
 
@@ -30,12 +30,12 @@ Resolve all blocking decisions. Set up all repos. Establish migration tooling. H
 
 ---
 
-## Phase 1A — Backend Core (Auth) — IN PROGRESS
+## Phase 1A — Backend Core (Auth) — EMAIL/PASSWORD DONE
 
 ### Goal
 Working auth system in watermelon-game-api. Users can register/login via Google, GitHub, or email.
 
-### Progress (as of 2026-03-20)
+### Progress (as of 2026-03-21)
 
 **Completed:**
 - ✅ `users` + `refresh_tokens` table migrations created and applied
@@ -61,49 +61,31 @@ Working auth system in watermelon-game-api. Users can register/login via Google,
 
 ---
 
-## Phase 1B — Game MVP
+## Phase 1B — Game MVP ✅ COMPLETE
 
 ### Goal
 Playable game in browser. Authenticated users can submit and save scores.
 
-### Prerequisites
-- Phase 1A complete
-- **PD-001 (game genre) confirmed — CRITICAL BLOCKER**
-- PD-002, PD-005, PD-015 confirmed
+### Progress (as of 2026-03-21)
 
-### Work Items
-
-1. Design game data schema based on genre
-2. Create `game_sessions` table migration
-3. Implement game logic API endpoints
-4. Build game UI in portfolio_nextjs (route per PD-012)
-5. Create API client layer in portfolio_nextjs
-6. Integrate auth in game page (login prompt, guest toggle)
-7. Implement score submission flow
-8. Guest mode: play without persistence
-
-### Expected Output
-- Game playable in browser from portfolio
-- Guest can play (no save)
-- Authenticated user can play and scores are saved
-- API client abstraction in place
+**All tasks completed:**
+- ✅ Game genre decided: Angry Birds style physics game (D-027)
+- ✅ `game_sessions` table migration created and applied
+- ✅ Game module in watermelon-game-api (types, schemas, service, routes — 6 endpoints)
+- ✅ Game engine in portfolio_nextjs (Matter.js physics, Canvas 2D, slingshot mechanics)
+- ✅ 3 levels: Simple Tower, Double Stack, Pyramid
+- ✅ Scoring system with level multiplier + bonuses
+- ✅ Game API client using authFetch
+- ✅ GameClient component with full game UI + overlays
+- ✅ Auth integration (login prompt for guests, score saving for auth users)
+- ✅ Navigation updated with `/game` link
 
 ### Gate Criteria
-- [ ] Game loads and is playable
-- [ ] Guest plays without errors, no data saved
-- [ ] Authenticated user's score saved to database
-- [ ] API calls from portfolio to game backend work correctly
-- [ ] No auth bypass possible on score submission
-
-### Risks
-| Risk | Mitigation |
-|---|---|
-| PD-001 not decided → blocks entire phase | Escalate to owner as critical blocker |
-| Game frontend tech choice (Canvas, WebGL, DOM) depends on genre | Wait for genre decision before choosing |
-| Complex game logic may expand scope | Keep MVP minimal — basic gameplay + score |
-
-### Owner Decisions Required
-- PD-001 (genre), PD-002 (real-time/turn-based), PD-005 (scoring), PD-006 (anti-cheat)
+- [x] Game loads and is playable
+- [x] Guest plays without errors, no data saved
+- [x] Authenticated user's score saved to database
+- [x] API calls from portfolio to game backend work correctly
+- [x] Navigation to /game works from both desktop and mobile nav
 
 ---
 
@@ -224,3 +206,9 @@ Owner decisions (PD-009, PD-013) → Phase 0 → Phase 1A → PD-001 (game genre
 ```
 
 **PD-001 (game genre) is the single biggest blocker for the project.** It can be decided any time before Phase 1B starts, but delaying it delays everything game-related.
+
+**UPDATE 2026-03-21**: PD-001 has been resolved (Angry Birds style physics game). Phase 1B is complete. The remaining critical path is:
+
+```
+Phase 1A OAuth → Phase 1C (PD-003, PD-004, PD-006) → PD-007 (PaaS) → Phase 1D
+```

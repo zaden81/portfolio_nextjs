@@ -11,6 +11,7 @@
 | next-themes | ^0.4.6 | Dark/Light mode |
 | Zod | ^4.3.6 | Schema validation |
 | Neon Serverless Postgres | ^1.0.2 | Database |
+| matter-js | ^0.20.0 | Physics engine for game |
 | clsx + tailwind-merge | - | Conditional class utilities |
 
 ## Project Structure
@@ -18,19 +19,24 @@
 ```
 portfolio_nextjs/
 ├── app/                          # Next.js App Router
-│   ├── layout.tsx                # Root layout (font, metadata, ThemeProvider)
+│   ├── layout.tsx                # Root layout (font, metadata, ThemeProvider, AuthProvider)
 │   ├── page.tsx                  # Home page - composes all sections
 │   ├── globals.css               # Theme tokens & CSS variables
+│   ├── login/page.tsx            # Login page (email + password)
+│   ├── register/page.tsx         # Register page (name + email + password)
+│   ├── game/
+│   │   ├── page.tsx              # Game page (server component, metadata)
+│   │   └── GameClient.tsx        # Game UI: canvas, overlays, auth integration
 │   └── api/
-│       ├── contact/route.ts      # POST /api/contact
-│       └── messages/route.ts     # GET /api/messages
+│       └── contact/route.ts      # POST /api/contact
 │
 ├── components/
 │   ├── icons/                    # SVG icon components
 │   ├── providers/
 │   │   └── ThemeProvider.tsx      # next-themes wrapper (dark default)
 │   ├── sections/                 # Page sections
-│   │   ├── Navbar/               # Navigation bar + mobile menu
+│   │   ├── Auth/                 # LoginForm, RegisterForm
+│   │   ├── Navbar/               # NavbarClient (auth + page-link aware), MobileMenu
 │   │   ├── Hero/                 # Hero banner + scroll button + wave divider
 │   │   ├── About/                # Bio, personal info, skills grid
 │   │   ├── Projects/             # Project showcase cards
@@ -50,8 +56,8 @@ portfolio_nextjs/
 │
 ├── config/                       # Static configuration
 │   ├── site.ts                   # Site metadata (title, description, OG/Twitter)
-│   ├── navigation.ts             # Nav links & logo text
-│   └── personal.ts              # Personal info (name, email, phone, bio)
+│   ├── navigation.ts             # Nav links (Home, About, Projects, Game) & phone
+│   └── personal.ts              # Personal info (name, birthday, phone, email, bio)
 │
 ├── data/                         # Content data
 │   ├── projects.ts               # Project list (title, tag, image, link)
@@ -61,11 +67,22 @@ portfolio_nextjs/
 ├── lib/                          # Shared utilities
 │   ├── utils.ts                  # cn() helper (clsx + tailwind-merge)
 │   ├── api/
-│   │   └── response.ts           # successResponse / errorResponse helpers
+│   │   ├── response.ts           # successResponse / errorResponse helpers
+│   │   └── game.ts               # Game API client (authFetch-based)
+│   ├── auth/
+│   │   ├── provider.tsx          # AuthProvider (React Context)
+│   │   ├── api.ts                # authFetch + authApi client
+│   │   └── index.ts              # useAuth hook export
+│   ├── game/
+│   │   ├── engine.ts             # Game engine (Matter.js physics, canvas rendering)
+│   │   ├── physics.ts            # Physics body creation (ground, walls, blocks, etc.)
+│   │   ├── levels.ts             # 3 levels (Simple Tower, Double Stack, Pyramid)
+│   │   ├── scoring.ts            # Score calculation + bonuses
+│   │   ├── types.ts              # Block, Level, GamePhase, GameState
+│   │   └── renderer.ts           # Canvas constant re-exports
 │   ├── db/
 │   │   ├── client.ts             # Neon DB client (lazy singleton)
-│   │   ├── schema.ts             # Auto-create messages table
-│   │   └── queries.ts            # insertMessage / getMessages
+│   │   └── queries.ts            # insertMessage
 │   └── validations/
 │       ├── env.ts                # DATABASE_URL validation
 │       └── contact.ts            # Contact form schema (Zod)
@@ -76,7 +93,10 @@ portfolio_nextjs/
 │   ├── skill.ts                  # SkillCategory
 │   ├── social-link.ts            # SocialLink
 │   ├── contact.ts                # ContactFormData
-│   └── personal.ts               # PersonalInfoItem
+│   ├── personal.ts               # PersonalInfoItem
+│   ├── auth.ts                   # AuthUser, AuthState, LoginFormData, etc.
+│   ├── game.ts                   # Block, Level, GamePhase, GameState (re-exports)
+│   └── index.ts                  # Barrel export
 │
 └── public/
     └── images/                   # Static images (avatar, projects, logo)
@@ -86,11 +106,16 @@ portfolio_nextjs/
 
 ### Page Composition
 
-The app is a **single-page portfolio** built with Next.js App Router. The home page (`app/page.tsx`) composes sections in order:
+The app is a **portfolio platform** built with Next.js App Router. The home page (`app/page.tsx`) composes sections in order:
 
 ```
 Navbar → Hero → About → Projects → Contact → Footer
 ```
+
+Additional routes:
+- `/login` — Email + password login form
+- `/register` — Registration form
+- `/game` — Angry Birds style physics game (Block Smasher)
 
 Each section is a self-contained component under `components/sections/`, using barrel exports (`index.ts`).
 
@@ -145,38 +170,47 @@ Receives contact form submissions. Validates with Zod, saves to Neon Postgres.
 - `400` — `{ "error": "<validation error>" }`
 - `500` — `{ "error": "Error saving message." }`
 
-### GET `/api/messages`
+**Rate limited**: 5 requests/minute per IP.
 
-Returns all stored contact messages from the database.
+## Game Engine
 
-**Response:** `200` — Array of message objects.
+### Block Smasher — Angry Birds style physics game
+
+**Tech**: HTML5 Canvas + matter-js physics engine
+
+**Architecture** (`lib/game/`):
+- `engine.ts` — Main game engine: creates Matter.js world, handles physics loop, canvas 2D rendering, mouse input (drag/release slingshot), game state management
+- `physics.ts` — Body factories: ground, walls, blocks, projectile, slingshot constraint
+- `levels.ts` — 3 levels with increasing difficulty (tower, double stack, pyramid)
+- `scoring.ts` — Score = blocks destroyed × 100 × level multiplier + remaining projectile bonus (200 each) + level clear bonus (500)
+- `types.ts` — Block, Level, GamePhase (`aiming`/`launched`/`settling`/`result`), GameState
+
+**Game flow**:
+1. Player drags slingshot ball backward
+2. Release launches projectile via matter-js physics
+3. Projectile hits blocks → blocks marked destroyed when off-screen or stopped
+4. When settled: if all blocks gone → level complete; if projectiles remain → next shot; else → level failed
+5. Between levels: score saved to backend (if authenticated)
+6. Game end: session completed on server
 
 ## Database
 
 - **Provider**: [Neon Serverless Postgres](https://neon.tech)
 - **Connection**: Via `@neondatabase/serverless` using `DATABASE_URL` env var
-- **Schema**: Auto-created on first query (`ensureSchema()`)
-
-```sql
-CREATE TABLE IF NOT EXISTS messages (
-  id         SERIAL PRIMARY KEY,
-  name       VARCHAR(100) NOT NULL,
-  email      VARCHAR(120) NOT NULL,
-  message    TEXT NOT NULL,
-  created_at TIMESTAMP DEFAULT NOW()
-);
-```
+- **Schema**: Managed by dbmate migrations in `platform-infra` repo
 
 ## Environment Variables
 
 | Variable | Required | Description |
 |---|---|---|
 | `DATABASE_URL` | Yes | Neon Postgres connection string |
+| `NEXT_PUBLIC_API_URL` | Yes | watermelon-game-api URL (for auth + game API calls) |
 
 Create a `.env` file in the project root:
 
 ```env
 DATABASE_URL=postgresql://user:password@host/dbname?sslmode=require
+NEXT_PUBLIC_API_URL=http://localhost:3001
 ```
 
 ## Styling
