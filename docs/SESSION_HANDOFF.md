@@ -1,4 +1,4 @@
-# Session Handoff — 2026-03-21
+# Session Handoff — 2026-03-23
 
 > Tạo lúc kết thúc session. Dùng để resume context khi bắt đầu session mới.
 
@@ -6,7 +6,7 @@
 
 ## Trạng thái hiện tại
 
-**Phase 0 hoàn thành. Phase 1A (Auth — Email/Password) hoàn thành. Phase 1B (Game MVP) hoàn thành.**
+**Phase 0, Phase 1A (Auth — full), Phase 1B (Game MVP) hoàn thành.**
 
 ### Session 1 (2026-03-18) — Foundation & Planning
 
@@ -56,19 +56,37 @@
 | 1B.12 | Update navigation — thêm "Game" link, xử lý page links vs anchor links | portfolio_nextjs |
 | 1B.13 | Export game types từ `types/index.ts` | portfolio_nextjs |
 
+### Session 4 (2026-03-23) — OAuth Implementation (Phase 1A complete)
+
+| Step | Mô tả | Repo |
+|---|---|---|
+| 1A.12 | Tạo `add_oauth_to_users` migration (oauth_provider, oauth_id) | platform-infra |
+| 1A.13 | Chạy `dbmate up` — alter users table | platform-infra |
+| 1A.14 | Implement OAuth module (`auth.oauth.ts`) — Google + GitHub exchange | watermelon-game-api |
+| 1A.15 | Update `auth.types.ts` — thêm oauth_provider, oauth_id | watermelon-game-api |
+| 1A.16 | Update `auth.service.ts` — thêm `findOrCreateOAuthUser` | watermelon-game-api |
+| 1A.17 | Implement 4 OAuth routes: `/auth/google`, `/auth/google/callback`, `/auth/github`, `/auth/github/callback` | watermelon-game-api |
+| 1A.18 | Update `env.ts` — thêm GOOGLE/GITHUB credentials (optional) | watermelon-game-api |
+| 1A.19 | Tạo `/auth/callback` page — handle OAuth tokens | portfolio_nextjs |
+| 1A.20 | Update `AuthContext` — thêm `setTokens` method | portfolio_nextjs |
+| 1A.21 | Thêm OAuth buttons vào LoginForm + RegisterForm | portfolio_nextjs |
+
 ### Đã push lên remote
 
-Tất cả 3 repos đã push. Commits:
+Tất cả 3 repos đã push. Commits (session 4 chưa push):
 
 | Repo | Commit | Message |
 |---|---|---|
 | platform-infra | `56fc6c3` | feat: add users and refresh_tokens migrations |
 | platform-infra | `45d421e` | feat: add game_sessions table migration |
+| platform-infra | (pending) | feat: add OAuth columns to users table |
 | watermelon-game-api | `4a14762` | feat: implement email/password auth with JWT |
 | watermelon-game-api | `f21d106` | fix: load .env via --env-file flag in dev and start scripts |
 | watermelon-game-api | `be71218` | feat: implement game module (sessions, scores, levels) |
+| watermelon-game-api | (pending) | feat: implement Google and GitHub OAuth |
 | portfolio_nextjs | `da73c9c` | feat: add auth UI (login, register, auth context) |
 | portfolio_nextjs | `8cb4a44` | feat: add Angry Birds style physics game (Phase 1B) |
+| portfolio_nextjs | (pending) | feat: add OAuth login buttons and callback page |
 
 ---
 
@@ -177,19 +195,22 @@ lib/game/
 | PD-004 | Leaderboard type (all-time/daily/weekly) | Phase 1C |
 | PD-006 | Anti-cheat strategy | Phase 1C |
 | PD-007 | PaaS provider (Render/Railway/Fly.io) | Phase 1D |
-| D-002 | Google + GitHub OAuth | Phase 1A chưa hoàn thành phần OAuth |
 
 ---
 
-## Chưa xong — cần thao tác trên server
+## Chưa xong — cần thao tác trên server / owner
 
 | Step | Việc cần làm | Ghi chú |
 |---|---|---|
-| 1 | Chạy `dbmate up` trên production | Tạo users + refresh_tokens + game_sessions tables |
+| 1 | Chạy `dbmate up` trên production | Tạo users + refresh_tokens + game_sessions + oauth columns |
 | 2 | Set `JWT_SECRET` env var trên server | Cho watermelon-game-api |
 | 3 | Set `NEXT_PUBLIC_API_URL` trên Vercel | Trỏ tới API URL production |
-| 4 | Test auth flow end-to-end trên production | Register → Login → /auth/me |
-| 5 | Test game flow end-to-end trên production | Login → Play → Score saved |
+| 4 | Tạo Google OAuth app | [Google Cloud Console](https://console.cloud.google.com/apis/credentials) |
+| 5 | Tạo GitHub OAuth app | [GitHub Developer Settings](https://github.com/settings/developers) |
+| 6 | Set OAuth env vars | `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `GITHUB_CLIENT_ID`, `GITHUB_CLIENT_SECRET` |
+| 7 | Test auth flow end-to-end trên production | Register → Login → /auth/me |
+| 8 | Test OAuth flow end-to-end | Google/GitHub login → callback → tokens saved |
+| 9 | Test game flow end-to-end trên production | Login → Play → Score saved |
 
 ---
 
@@ -198,6 +219,5 @@ lib/game/
 1. Đọc file này để lấy context
 2. Đọc `docs/EXECUTION_CHECKLIST.md` để biết chi tiết checklist
 3. Đọc `docs/DECISION_LOG.md` để biết decisions đã chốt vs pending
-4. **Nếu tiếp tục Phase 1A**: implement Google + GitHub OAuth
-5. **Nếu chuyển Phase 1C**: implement leaderboard (cần PD-003, PD-004, PD-006)
-6. **Nếu deploy**: thực hiện các bước server ở trên
+4. **Nếu chuyển Phase 1C**: implement leaderboard (cần PD-003, PD-004, PD-006)
+5. **Nếu deploy**: thực hiện các bước server ở trên

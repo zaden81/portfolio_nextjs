@@ -1,6 +1,6 @@
 # Execution Checklist
 
-> Last updated: 2026-03-21
+> Last updated: 2026-03-23
 > Status: Master checklist for stage 1 execution. Update as work progresses.
 
 ---
@@ -47,7 +47,7 @@
 
 ---
 
-## Phase 1A — Backend Core (Auth) — EMAIL/PASSWORD DONE, OAUTH PENDING
+## Phase 1A — Backend Core (Auth) ✅ COMPLETE
 
 ### Owner Decisions
 - [x] PD-011: Token strategy — **JWT + refresh token rotation** (D-021)
@@ -79,17 +79,20 @@
 - [x] Implement `POST /auth/logout` — **Done, tested**
 - [x] Implement `POST /auth/refresh` — **Done, tested** (with token rotation)
 
-### Auth Implementation — OAuth (TODO)
-- [ ] Implement Google OAuth flow
-  - [ ] Register Google OAuth app (Google Cloud Console)
-  - [ ] Implement `/auth/google` redirect endpoint
-  - [ ] Implement `/auth/google/callback` endpoint
-  - [ ] Test end-to-end Google login
-- [ ] Implement GitHub OAuth flow
-  - [ ] Register GitHub OAuth app (GitHub Settings)
-  - [ ] Implement `/auth/github` redirect endpoint
-  - [ ] Implement `/auth/github/callback` endpoint
-  - [ ] Test end-to-end GitHub login
+### Auth Implementation — OAuth ✅
+- [x] Implement Google OAuth flow
+  - [x] Implement `/auth/google` redirect endpoint
+  - [x] Implement `/auth/google/callback` endpoint
+  - [ ] Register Google OAuth app (Google Cloud Console) — **Owner task**
+  - [ ] Test end-to-end Google login — **Pending credentials**
+- [x] Implement GitHub OAuth flow
+  - [x] Implement `/auth/github` redirect endpoint
+  - [x] Implement `/auth/github/callback` endpoint
+  - [ ] Register GitHub OAuth app (GitHub Settings) — **Owner task**
+  - [ ] Test end-to-end GitHub login — **Pending credentials**
+- [x] Create migration: `add_oauth_to_users` (oauth_provider, oauth_id columns)
+- [x] Frontend OAuth callback page (`/auth/callback`)
+- [x] OAuth buttons in Login and Register forms
 
 ### Frontend Auth ✅
 - [x] AuthProvider + useAuth hook (React Context)

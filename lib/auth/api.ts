@@ -44,6 +44,10 @@ export async function authFetch<T>(
   return res.json();
 }
 
+export function getApiUrl(): string {
+  return API_URL;
+}
+
 export const authApi = {
   register(data: RegisterFormData): Promise<AuthApiResponse> {
     return authFetch("/auth/register", {
