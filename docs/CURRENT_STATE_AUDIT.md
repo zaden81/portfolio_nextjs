@@ -1,6 +1,6 @@
 # Current State Audit
 
-> Last updated: 2026-03-21
+> Last updated: 2026-03-24
 > Source: Full source code audit of `portfolio_nextjs` repo
 > Method: Every file read and analyzed
 
@@ -31,11 +31,14 @@ portfolio_nextjs/
 │   ├── layout.tsx          ✅ Root layout with font, metadata, theme, AuthProvider
 │   ├── page.tsx            ✅ Single page composing all sections
 │   ├── globals.css         ✅ Theme tokens via CSS variables
-│   ├── login/page.tsx      ✅ Login page (email + password)
+│   ├── login/page.tsx      ✅ Login page (email + password, Suspense-wrapped)
 │   ├── register/page.tsx   ✅ Register page (name + email + password)
-│   ├── game/               ✅ Game page + GameClient
+│   ├── auth/callback/      ✅ OAuth callback handler (Suspense-wrapped)
+│   ├── game/               ✅ Game page + GameClient + error boundary
 │   │   ├── page.tsx        ✅ Server wrapper with metadata
-│   │   └── GameClient.tsx  ✅ Full game UI with canvas + overlays
+│   │   ├── GameClient.tsx  ✅ Full game UI with canvas + overlays
+│   │   └── error.tsx       ✅ Game-specific error boundary
+│   ├── error.tsx            ✅ Global error boundary
 │   └── api/
 │       └── contact/route.ts    ✅ POST endpoint with validation + rate limiting
 │
@@ -58,7 +61,7 @@ portfolio_nextjs/
 │   ├── utils.ts            ✅ cn() utility
 │   ├── api/                ✅ Response helpers + game API client
 │   ├── auth/               ✅ AuthProvider, useAuth, authFetch, authApi
-│   ├── game/               ✅ Engine, physics, levels, scoring, types, renderer
+│   ├── game/               ✅ Engine, physics, levels, scoring, types
 │   ├── db/                 ✅ Client, queries
 │   └── validations/        ✅ Env + contact schema (Zod)
 │
@@ -156,8 +159,6 @@ portfolio_nextjs/
 | Types | `lib/game/types.ts` | Block, Level, GamePhase, GameState |
 | API Client | `lib/api/game.ts` | Game session CRUD via authFetch |
 
-**Assessment**: Clean game architecture. Physics engine encapsulated. Levels are data-driven. Easy to add more levels or modify scoring.
-
 ### 3.6 API Layer
 
 | Route | Method | Auth | Validation | Notes |
@@ -199,7 +200,7 @@ portfolio_nextjs/
 | 1 | ~~`/api/messages` has no auth~~ | ~~High~~ | ~~Security~~ | ✅ Removed (D-019) |
 | 2 | No tests of any kind | **Medium** | Quality | Open |
 | 3 | ~~`ensureSchema()` auto-migration won't scale~~ | ~~Medium~~ | ~~Database~~ | ✅ Migrated to dbmate |
-| 4 | `images.unoptimized: true` in next.config — all images unoptimized | **Low** | Performance | Open |
+| 4 | ~~`images.unoptimized: true` in next.config~~ | ~~Low~~ | ~~Performance~~ | ✅ Fixed — enabled Next.js image optimization |
 | 5 | ~~No rate limiting on `/api/contact`~~ | ~~Medium~~ | ~~Security~~ | ✅ Added (5 req/min by IP) |
 | 6 | No CSRF protection on contact form | **Low** | Security | Open |
 | 7 | ~~No deploy configuration~~ | ~~Medium~~ | ~~DevOps~~ | Partial — Vercel pending |
@@ -209,7 +210,7 @@ portfolio_nextjs/
 | 11 | ~~Duplicate PHONE constants~~ | ~~Trivial~~ | ~~Consistency~~ | ✅ Consolidated |
 | 12 | ~~Unused `LOGO_TEXT` export~~ | ~~Trivial~~ | ~~Cleanup~~ | ✅ Removed |
 | 13 | Game score validation is client-side only | **Medium** | Security | Open — deferred to Phase 1C anti-cheat |
-| 14 | Google + GitHub OAuth not yet implemented | **Medium** | Auth | Open — pending Phase 1A OAuth |
+| 14 | ~~Google + GitHub OAuth not yet implemented~~ | ~~Medium~~ | ~~Auth~~ | ✅ Code done — pending owner OAuth app credentials |
 
 ---
 
@@ -242,7 +243,7 @@ portfolio_nextjs/
 | 2 | ~~No API client abstraction~~ | ~~When game needs API calls~~ | ✅ Done — `lib/api/game.ts` + `lib/auth/api.ts` |
 | 3 | ~~Unprotected `/api/messages`~~ | ~~Before production~~ | ✅ Done — removed |
 | 4 | ~~No rate limiting~~ | ~~Before production~~ | ✅ Done — IP-based rate limiting |
-| 5 | No error boundaries | When users encounter runtime errors | Add React error boundaries (Phase 1C) |
-| 6 | Image optimization disabled | When page performance matters | Enable Vercel image optimization or use proper config |
+| 5 | ~~No error boundaries~~ | ~~When users encounter runtime errors~~ | ✅ Done — error.tsx in root, /game, /login, /register |
+| 6 | ~~Image optimization disabled~~ | ~~When page performance matters~~ | ✅ Done — enabled Next.js optimization |
 | 7 | No test coverage | When codebase grows further | Add unit + integration tests |
 | 8 | Client-side score validation only | When leaderboard goes live | Server-side validation (Phase 1C anti-cheat) |

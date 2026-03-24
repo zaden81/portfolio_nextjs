@@ -3,4 +3,5 @@ export interface Project {
   tag: string;
   image: string;
   href: string;
+  isInternal?: boolean;
 }

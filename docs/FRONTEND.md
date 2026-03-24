@@ -22,11 +22,14 @@ portfolio_nextjs/
 │   ├── layout.tsx                # Root layout (font, metadata, ThemeProvider, AuthProvider)
 │   ├── page.tsx                  # Home page - composes all sections
 │   ├── globals.css               # Theme tokens & CSS variables
-│   ├── login/page.tsx            # Login page (email + password)
+│   ├── login/page.tsx            # Login page (Suspense-wrapped for searchParams)
 │   ├── register/page.tsx         # Register page (name + email + password)
+│   ├── auth/callback/page.tsx    # OAuth callback handler (Suspense-wrapped)
 │   ├── game/
 │   │   ├── page.tsx              # Game page (server component, metadata)
-│   │   └── GameClient.tsx        # Game UI: canvas, overlays, auth integration
+│   │   ├── GameClient.tsx        # Game UI: canvas, overlays, auth integration
+│   │   └── error.tsx             # Game-specific error boundary
+│   ├── error.tsx                  # Global error boundary
 │   └── api/
 │       └── contact/route.ts      # POST /api/contact
 │
@@ -78,8 +81,7 @@ portfolio_nextjs/
 │   │   ├── physics.ts            # Physics body creation (ground, walls, blocks, etc.)
 │   │   ├── levels.ts             # 3 levels (Simple Tower, Double Stack, Pyramid)
 │   │   ├── scoring.ts            # Score calculation + bonuses
-│   │   ├── types.ts              # Block, Level, GamePhase, GameState
-│   │   └── renderer.ts           # Canvas constant re-exports
+│   │   └── types.ts              # Block, Level, GamePhase, GameState
 │   ├── db/
 │   │   ├── client.ts             # Neon DB client (lazy singleton)
 │   │   └── queries.ts            # insertMessage
@@ -113,8 +115,9 @@ Navbar → Hero → About → Projects → Contact → Footer
 ```
 
 Additional routes:
-- `/login` — Email + password login form
-- `/register` — Registration form
+- `/login` — Email + password login form (with OAuth buttons)
+- `/register` — Registration form (with OAuth buttons)
+- `/auth/callback` — OAuth callback token handler
 - `/game` — Angry Birds style physics game (Block Smasher)
 
 Each section is a self-contained component under `components/sections/`, using barrel exports (`index.ts`).
@@ -233,6 +236,7 @@ Edit `data/projects.ts`:
   title: "Project Title",
   image: "/images/projects/your-image.jpg",
   href: "https://github.com/your-repo",
+  // Optional: isInternal: true for internal links (uses Next.js Link)
 }
 ```
 

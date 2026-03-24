@@ -62,12 +62,6 @@ export function createSlingshotConstraint(projectile: Matter.Body): Matter.Const
   });
 }
 
-export function isWithinSlingshotRange(pos: Matter.Vector): boolean {
-  const dx = pos.x - SLINGSHOT_X;
-  const dy = pos.y - SLINGSHOT_Y;
-  return Math.sqrt(dx * dx + dy * dy) <= SLINGSHOT_RADIUS;
-}
-
 export function clampToSlingshotRange(pos: Matter.Vector): Matter.Vector {
   const dx = pos.x - SLINGSHOT_X;
   const dy = pos.y - SLINGSHOT_Y;

@@ -1,6 +1,6 @@
 # Decision Log
 
-> Last updated: 2026-03-21
+> Last updated: 2026-03-24
 > Status: Living document — updated as decisions are made
 
 ---

@@ -1,7 +1,7 @@
 # Phases Roadmap
 
-> Last updated: 2026-03-21
-> Status: Living document — Phase 0 complete, Phase 1A email/password done (OAuth pending), Phase 1B complete
+> Last updated: 2026-03-24
+> Status: Living document — Phase 0 complete, Phase 1A complete (code), Phase 1B complete, Phase 1C polish in progress
 
 ---
 
@@ -10,9 +10,9 @@
 | Phase | Name | Goal | Depends On | Status |
 |---|---|---|---|---|
 | **Phase 0** | Foundation & Planning | Finalize all pending decisions, set up repos, migrations, CI baseline | Owner decisions | ✅ Complete |
-| **Phase 1A** | Backend Core | Auth + basic API structure in watermelon-game-api | Phase 0 | 🔄 Email/password done, OAuth pending |
+| **Phase 1A** | Backend Core | Auth + basic API structure in watermelon-game-api | Phase 0 | ✅ Complete (code) — OAuth credentials pending owner |
 | **Phase 1B** | Game MVP | Game frontend + game logic + score submission | Phase 1A + PD-001 (game genre) | ✅ Complete |
-| **Phase 1C** | Leaderboard & Polish | Leaderboard, security hardening, portfolio integration | Phase 1B | Pending |
+| **Phase 1C** | Leaderboard & Polish | Leaderboard, security hardening, portfolio integration | Phase 1B | 🔄 Polish items in progress |
 | **Phase 1D** | Deploy & Launch | Production deploy, monitoring, final QA | Phase 1C | Pending |
 | **Phase 2** | Expansion | Additional projects, admin panel, analytics, etc. | Phase 1D | Future |
 
@@ -61,7 +61,7 @@ Resolve all blocking decisions. Set up repo scaffolding. Establish migration too
 
 ---
 
-## Phase 1A — Backend Core — IN PROGRESS
+## Phase 1A — Backend Core — ✅ COMPLETE (code)
 
 ### Goal
 Auth system working in watermelon-game-api. Users can register, login, and authenticate.
@@ -86,14 +86,15 @@ Auth system working in watermelon-game-api. Users can register, login, and authe
 | 1A.9 | Frontend: Navbar auth integration | 1A.8 | ✅ Done |
 | 1A.10 | CORS configuration (allow portfolio_nextjs origin) | — | ✅ Already in scaffold |
 | 1A.11 | Rate limiting on auth endpoints | — | ✅ Done |
-| 1A.12 | Implement Google OAuth flow | 1A.1 | TODO |
-| 1A.13 | Implement GitHub OAuth flow | 1A.1 | TODO |
+| 1A.12 | Implement Google OAuth flow | 1A.1 | ✅ Code done — pending owner OAuth app setup |
+| 1A.13 | Implement GitHub OAuth flow | 1A.1 | ✅ Code done — pending owner OAuth app setup |
 
 ### Output
 - ✅ Email/password auth fully working (register, login, logout, refresh, me)
 - ✅ Frontend auth UI (login, register pages, navbar integration)
 - ✅ CORS + rate limiting configured
-- TODO: Google + GitHub OAuth flows
+- ✅ Google + GitHub OAuth code implemented (routes, callback, frontend buttons)
+- Pending: Owner must register OAuth apps and set credentials
 
 ### Risks
 - OAuth provider setup complexity (callback URLs, client IDs)

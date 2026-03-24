@@ -1,6 +1,6 @@
 # Open Questions
 
-> Last updated: 2026-03-21
+> Last updated: 2026-03-24
 > Status: Questions organized by category. Owner must answer before relevant phase begins.
 
 ---
@@ -17,7 +17,7 @@
 
 ---
 
-## Auth — MOSTLY RESOLVED
+## Auth — RESOLVED
 
 | ID | Question | Impact | Blocks | Status |
 |---|---|---|---|---|
@@ -25,6 +25,8 @@
 | ~~PD-011~~ | ~~Token strategy~~ | ~~Auth implementation~~ | ~~Phase 1A~~ | **Resolved**: JWT + refresh token (D-021) |
 | ~~PD-016~~ | ~~Email verification required?~~ | ~~Email provider, UX flow~~ | ~~Phase 1A~~ | **Resolved**: No (D-025) |
 | ~~PD-017~~ | ~~Auth state persist across repos?~~ | ~~Token sharing strategy~~ | ~~Phase 1A~~ | **Resolved**: JWT Bearer header + CORS |
+
+All Phase 1A code is complete including Google + GitHub OAuth. Pending: owner must register OAuth apps and set credentials.
 
 ---
 
@@ -82,8 +84,8 @@
 ## Summary: What Must Be Answered Before Each Phase
 
 ### Before Phase 1A can complete (OAuth part):
-- Google OAuth app setup (owner must register on Google Cloud Console)
-- GitHub OAuth app setup (owner must register on GitHub Settings)
+- ~~Google OAuth app setup (owner must register on Google Cloud Console)~~ — Code done, pending credentials
+- ~~GitHub OAuth app setup (owner must register on GitHub Settings)~~ — Code done, pending credentials
 
 ### Before Phase 1B can start:
 - ~~PD-001 (game genre)~~ — **Resolved** (D-027)
@@ -95,8 +97,10 @@
 ### Before Phase 1C can complete:
 - PD-003 (guests view leaderboard?)
 - PD-004 (leaderboard type)
-- PD-005 (scoring metric)
 - PD-006 (anti-cheat)
+- PD-018 (display names)
+
+Note: PD-005 (scoring metric) already resolved (D-029). Phase 1C polish items (error boundaries, image optimization, dead code, game in Projects) are done.
 
 ### Before Phase 1D can complete:
 - PD-007 (PaaS provider)

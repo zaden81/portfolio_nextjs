@@ -1,6 +1,6 @@
 # Execution Checklist
 
-> Last updated: 2026-03-23
+> Last updated: 2026-03-24
 > Status: Master checklist for stage 1 execution. Update as work progresses.
 
 ---
@@ -176,13 +176,14 @@
 ### Frontend
 - [ ] Build leaderboard UI component
 - [ ] Integrate leaderboard in game page or dedicated section
-- [ ] Update Projects section to feature game prominently
+- [x] Update Projects section to feature game prominently — **Done (2026-03-24)**
 
 ### Polish
 - [ ] Security audit: review all endpoints
-- [ ] Add React error boundaries
-- [ ] Review image optimization setting
-- [ ] Clean up any remaining dead code
+- [x] Add React error boundaries — **Done (2026-03-24)**: error.tsx in root, /game, /login, /register
+- [x] Review image optimization setting — **Done (2026-03-24)**: enabled Next.js optimization
+- [x] Clean up any remaining dead code — **Done (2026-03-24)**: removed renderer.ts, isWithinSlingshotRange
+- [x] Fix Suspense boundaries for useSearchParams — **Done (2026-03-24)**: /auth/callback, /login
 - [ ] Review and update all documentation
 
 ---
@@ -226,14 +227,14 @@
 
 ### Documents Status
 - [x] SYSTEM_OVERVIEW.md — Created
-- [x] CURRENT_STATE_AUDIT.md — Created, updated 2026-03-21
+- [x] CURRENT_STATE_AUDIT.md — Created, updated 2026-03-24
 - [x] PRODUCT_SCOPE.md — Created
 - [x] TECH_ARCHITECTURE.md — Created, updated 2026-03-21
-- [x] PHASES_ROADMAP.md — Created, updated 2026-03-21
-- [x] OPEN_QUESTIONS.md — Created, updated 2026-03-21
-- [x] DECISION_LOG.md — Created, updated 2026-03-21
-- [x] EXECUTION_CHECKLIST.md — Created (this file), updated 2026-03-21
-- [x] MASTER_PLAN.md — Created, updated 2026-03-21
+- [x] PHASES_ROADMAP.md — Created, updated 2026-03-24
+- [x] OPEN_QUESTIONS.md — Created, updated 2026-03-24
+- [x] DECISION_LOG.md — Created, updated 2026-03-24
+- [x] EXECUTION_CHECKLIST.md — Created (this file), updated 2026-03-24
+- [x] MASTER_PLAN.md — Created, updated 2026-03-24
 - [x] SKILL_AGENTS.md — Created
-- [x] FRONTEND.md — Created, updated 2026-03-21
-- [x] SESSION_HANDOFF.md — Created, updated 2026-03-21
+- [x] FRONTEND.md — Created, updated 2026-03-24
+- [x] SESSION_HANDOFF.md — Created, updated 2026-03-24

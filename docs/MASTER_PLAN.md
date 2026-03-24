@@ -1,7 +1,7 @@
 # Master Plan
 
-> Last updated: 2026-03-21
-> Status: Stage 1 master plan. Phase 0 complete, Phase 1A email/password done, Phase 1B complete.
+> Last updated: 2026-03-24
+> Status: Stage 1 master plan. Phase 0 complete, Phase 1A complete (code), Phase 1B complete, Phase 1C polish in progress.
 
 ---
 
@@ -30,12 +30,12 @@ Resolve all blocking decisions. Set up all repos. Establish migration tooling. H
 
 ---
 
-## Phase 1A — Backend Core (Auth) — EMAIL/PASSWORD DONE
+## Phase 1A — Backend Core (Auth) — ✅ COMPLETE (code)
 
 ### Goal
 Working auth system in watermelon-game-api. Users can register/login via Google, GitHub, or email.
 
-### Progress (as of 2026-03-21)
+### Progress (as of 2026-03-24)
 
 **Completed:**
 - ✅ `users` + `refresh_tokens` table migrations created and applied
@@ -46,18 +46,24 @@ Working auth system in watermelon-game-api. Users can register/login via Google,
 - ✅ CORS configured, rate limiting on all auth routes
 - ✅ Global error handler (AppError, ZodError, FastifyError)
 - ✅ Frontend: AuthProvider, useAuth hook, login/register pages, navbar integration
+- ✅ Google OAuth flow (routes + frontend callback + buttons)
+- ✅ GitHub OAuth flow (routes + frontend callback + buttons)
+- ✅ OAuth migration (oauth_provider, oauth_id columns)
 
-**Remaining:**
-- [ ] Google OAuth flow (requires Google Cloud Console setup by owner)
-- [ ] GitHub OAuth flow (requires GitHub OAuth app setup by owner)
+**Pending owner action:**
+- [ ] Register Google OAuth app (Google Cloud Console)
+- [ ] Register GitHub OAuth app (GitHub Settings)
+- [ ] Set OAuth env vars and test end-to-end
 
 ### Gate Criteria
 - [x] Email/password auth working
 - [x] Auth middleware correctly blocks unauthenticated requests
 - [x] CORS allows only portfolio_nextjs origin
 - [x] Rate limiting active on auth endpoints
-- [ ] Google OAuth working
-- [ ] GitHub OAuth working
+- [x] Google OAuth code implemented
+- [x] GitHub OAuth code implemented
+- [ ] Google OAuth end-to-end tested (pending credentials)
+- [ ] GitHub OAuth end-to-end tested (pending credentials)
 
 ---
 
@@ -89,7 +95,7 @@ Playable game in browser. Authenticated users can submit and save scores.
 
 ---
 
-## Phase 1C — Leaderboard & Polish
+## Phase 1C — Leaderboard & Polish — IN PROGRESS
 
 ### Goal
 Official leaderboard working. Portfolio integration polished. Security hardened.
@@ -103,11 +109,11 @@ Official leaderboard working. Portfolio integration polished. Security hardened.
 1. Create leaderboard schema/view migration
 2. Implement leaderboard API endpoints
 3. Build leaderboard UI in portfolio_nextjs
-4. Integrate game as featured project in portfolio Projects section
+4. ~~Integrate game as featured project in portfolio Projects section~~ ✅ Done
 5. Security audit of all endpoints
-6. Add React error boundaries
-7. Review image optimization setting
-8. Clean up any remaining issues
+6. ~~Add React error boundaries~~ ✅ Done
+7. ~~Review image optimization setting~~ ✅ Done — enabled
+8. ~~Clean up any remaining issues~~ ✅ Done — removed dead code
 
 ### Expected Output
 - Leaderboard visible and functional
@@ -119,7 +125,7 @@ Official leaderboard working. Portfolio integration polished. Security hardened.
 - [ ] Leaderboard displays correctly with real data
 - [ ] Auth rules enforced on leaderboard (per PD-003)
 - [ ] Security audit complete, no issues found
-- [ ] Game appears in portfolio Projects section
+- [x] Game appears in portfolio Projects section
 - [ ] All docs updated
 
 ### Owner Decisions Required
@@ -207,8 +213,8 @@ Owner decisions (PD-009, PD-013) → Phase 0 → Phase 1A → PD-001 (game genre
 
 **PD-001 (game genre) is the single biggest blocker for the project.** It can be decided any time before Phase 1B starts, but delaying it delays everything game-related.
 
-**UPDATE 2026-03-21**: PD-001 has been resolved (Angry Birds style physics game). Phase 1B is complete. The remaining critical path is:
+**UPDATE 2026-03-24**: Phase 1A OAuth code is complete. Phase 1C polish items (error boundaries, image optimization, dead code cleanup, game in Projects section) are done. The remaining critical path is:
 
 ```
-Phase 1A OAuth → Phase 1C (PD-003, PD-004, PD-006) → PD-007 (PaaS) → Phase 1D
+Owner OAuth setup → Phase 1C leaderboard (PD-003, PD-004, PD-006) → PD-007 (PaaS) → Phase 1D
 ```

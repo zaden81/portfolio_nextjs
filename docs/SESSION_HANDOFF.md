@@ -1,4 +1,4 @@
-# Session Handoff — 2026-03-23
+# Session Handoff — 2026-03-24
 
 > Tạo lúc kết thúc session. Dùng để resume context khi bắt đầu session mới.
 
@@ -6,7 +6,7 @@
 
 ## Trạng thái hiện tại
 
-**Phase 0, Phase 1A (Auth — full), Phase 1B (Game MVP) hoàn thành.**
+**Phase 0, Phase 1A (Auth — full code), Phase 1B (Game MVP) hoàn thành. Phase 1C polish đang tiến hành.**
 
 ### Session 1 (2026-03-18) — Foundation & Planning
 
@@ -70,6 +70,20 @@
 | 1A.19 | Tạo `/auth/callback` page — handle OAuth tokens | portfolio_nextjs |
 | 1A.20 | Update `AuthContext` — thêm `setTokens` method | portfolio_nextjs |
 | 1A.21 | Thêm OAuth buttons vào LoginForm + RegisterForm | portfolio_nextjs |
+
+### Session 5 (2026-03-24) — Phase 1C Polish
+
+| Step | Mô tả | Repo |
+|---|---|---|
+| 1C.1 | Thêm error boundaries (error.tsx) cho root, /game, /login, /register | portfolio_nextjs |
+| 1C.2 | Bật Next.js image optimization (xóa `unoptimized: true`) | portfolio_nextjs |
+| 1C.3 | Xóa dead code: `lib/game/renderer.ts`, `isWithinSlingshotRange()` | portfolio_nextjs |
+| 1C.4 | Thêm Block Smasher game vào Projects section (featured, vị trí đầu) | portfolio_nextjs |
+| 1C.5 | Update `ProjectCard` hỗ trợ internal links (Next.js `Link`) | portfolio_nextjs |
+| 1C.6 | Thêm `isInternal` field vào `Project` type | portfolio_nextjs |
+| 1C.7 | Fix Suspense boundary cho `/auth/callback` (build error) | portfolio_nextjs |
+| 1C.8 | Fix Suspense boundary cho `/login` page (build error) | portfolio_nextjs |
+| 1C.9 | Update tất cả docs (PHASES_ROADMAP, MASTER_PLAN, CURRENT_STATE_AUDIT, EXECUTION_CHECKLIST, FRONTEND, SESSION_HANDOFF) | portfolio_nextjs |
 
 ### Đã push lên remote
 
