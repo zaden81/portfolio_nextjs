@@ -1,6 +1,6 @@
 # Open Questions
 
-> Last updated: 2026-03-24
+> Last updated: 2026-03-25
 > Status: Questions organized by category. Owner must answer before relevant phase begins.
 
 ---
@@ -11,7 +11,7 @@
 |---|---|---|---|---|
 | ~~PD-001~~ | ~~What is the game genre?~~ | ~~Drives game architecture~~ | ~~Phase 1B~~ | **Resolved**: Angry Birds style physics game (D-027) |
 | ~~PD-002~~ | ~~Real-time or turn-based?~~ | ~~API pattern~~ | ~~Phase 1B~~ | **Resolved**: Real-time physics simulation (D-028) |
-| PD-003 | **Can guests view the leaderboard (read-only)?** | Affects leaderboard API auth rules, frontend UX | Phase 1C | **OPEN** |
+| PD-003 | **Can guests view the leaderboard (read-only)?** | Affects leaderboard API auth rules, frontend UX | Phase 1C | **Resolved**: Yes, public read-only (D-033) |
 | PD-008 | **What is the admin panel scope?** Should admin see: contact messages only? User accounts? Game data? All of the above? | Whether to build admin routes, what data to expose | Phase 2 (or late Phase 1) | **OPEN** |
 | ~~PD-015~~ | ~~Game page URL?~~ | ~~Frontend routing~~ | ~~Phase 1B~~ | **Resolved**: `/game` route (D-030) |
 
@@ -34,10 +34,10 @@ All Phase 1A code is complete including Google + GitHub OAuth. Pending: owner mu
 
 | ID | Question | Impact | Blocks | Status |
 |---|---|---|---|---|
-| PD-004 | **Leaderboard type: all-time, daily, weekly, or combination?** | DB schema (need timestamp filtering), query complexity | Phase 1C | **OPEN** |
+| PD-004 | **Leaderboard type: all-time, daily, weekly, or combination?** | DB schema (need timestamp filtering), query complexity | Phase 1C | **Resolved**: All-time only (D-034) |
 | ~~PD-005~~ | ~~Scoring metric~~ | ~~Schema and sorting~~ | ~~Phase 1B, 1C~~ | **Resolved**: Points = blocks × 100 × level + bonuses (D-029) |
-| PD-006 | **Anti-cheat strategy?** Options: (a) server-side score validation, (b) client trust with rate limiting, (c) replay verification, (d) none in stage 1 | Backend complexity, game logic placement | Phase 1C | **OPEN** |
-| PD-018 | **Should leaderboard show user display names or anonymous IDs?** | Privacy policy, user profile requirements | Phase 1C | **OPEN** |
+| PD-006 | **Anti-cheat strategy?** Options: (a) server-side score validation, (b) client trust with rate limiting, (c) replay verification, (d) none in stage 1 | Backend complexity, game logic placement | Phase 1C | **Resolved**: Client trust + rate limiting (D-035) |
+| PD-018 | **Should leaderboard show user display names or anonymous IDs?** | Privacy policy, user profile requirements | Phase 1C | **Resolved**: Show display names from users.name (D-036) |
 
 ---
 
@@ -95,12 +95,12 @@ All Phase 1A code is complete including Google + GitHub OAuth. Pending: owner mu
 **Phase 1B is complete.**
 
 ### Before Phase 1C can complete:
-- PD-003 (guests view leaderboard?)
-- PD-004 (leaderboard type)
-- PD-006 (anti-cheat)
-- PD-018 (display names)
+- ~~PD-003 (guests view leaderboard?)~~ — **Resolved** (D-033)
+- ~~PD-004 (leaderboard type)~~ — **Resolved** (D-034)
+- ~~PD-006 (anti-cheat)~~ — **Resolved** (D-035)
+- ~~PD-018 (display names)~~ — **Resolved** (D-036)
 
-Note: PD-005 (scoring metric) already resolved (D-029). Phase 1C polish items (error boundaries, image optimization, dead code, game in Projects) are done.
+Note: PD-005 (scoring metric) already resolved (D-029). **Phase 1C is complete.**
 
 ### Before Phase 1D can complete:
 - PD-007 (PaaS provider)

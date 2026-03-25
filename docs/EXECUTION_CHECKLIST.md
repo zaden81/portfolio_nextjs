@@ -1,6 +1,6 @@
 # Execution Checklist
 
-> Last updated: 2026-03-24
+> Last updated: 2026-03-25
 > Status: Master checklist for stage 1 execution. Update as work progresses.
 
 ---
@@ -157,25 +157,25 @@
 
 ---
 
-## Phase 1C — Leaderboard & Polish
+## Phase 1C — Leaderboard & Polish ✅ COMPLETE
 
 ### Owner Decisions
-- [ ] PD-003: Can guests view leaderboard?
-- [ ] PD-004: Leaderboard type (all-time / daily / weekly)
-- [ ] PD-018: Display names or anonymous on leaderboard?
+- [x] PD-003: Can guests view leaderboard? — **Yes, public read-only** (D-033)
+- [x] PD-004: Leaderboard type (all-time / daily / weekly) — **All-time only** (D-034)
+- [x] PD-018: Display names or anonymous on leaderboard? — **Show user display names** (D-036)
 
 ### Database
-- [ ] Create migration: leaderboard view/table
-- [ ] Run migration
+- [x] Create migration: leaderboard view/table — **Not needed, query-only approach**
+- [x] Run migration — **N/A**
 
 ### Backend
-- [ ] Implement `GET /leaderboard` endpoint
-- [ ] Apply auth rules per PD-003 decision
-- [ ] Implement anti-cheat measures per PD-006
+- [x] Implement `GET /leaderboard` endpoint — **Done (2026-03-25)**: public, returns top 20 best scores
+- [x] Apply auth rules per PD-003 decision — **Public, no auth required**
+- [x] Implement anti-cheat measures per PD-006 — **Client trust + rate limiting 60/min** (D-035)
 
 ### Frontend
-- [ ] Build leaderboard UI component
-- [ ] Integrate leaderboard in game page or dedicated section
+- [x] Build leaderboard UI component — **Done (2026-03-25)**: `app/game/Leaderboard.tsx`
+- [x] Integrate leaderboard in game page or dedicated section — **Done (2026-03-25)**: below game canvas
 - [x] Update Projects section to feature game prominently — **Done (2026-03-24)**
 
 ### Polish

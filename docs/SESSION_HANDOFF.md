@@ -1,4 +1,4 @@
-# Session Handoff — 2026-03-24
+# Session Handoff — 2026-03-25
 
 > Tạo lúc kết thúc session. Dùng để resume context khi bắt đầu session mới.
 
@@ -6,7 +6,7 @@
 
 ## Trạng thái hiện tại
 
-**Phase 0, Phase 1A (Auth — full code), Phase 1B (Game MVP) hoàn thành. Phase 1C polish đang tiến hành.**
+**Phase 0, Phase 1A (Auth — full code), Phase 1B (Game MVP), Phase 1C (Leaderboard & Polish) hoàn thành. Sẵn sàng cho Phase 1D (Deploy).**
 
 ### Session 1 (2026-03-18) — Foundation & Planning
 
@@ -84,6 +84,19 @@
 | 1C.7 | Fix Suspense boundary cho `/auth/callback` (build error) | portfolio_nextjs |
 | 1C.8 | Fix Suspense boundary cho `/login` page (build error) | portfolio_nextjs |
 | 1C.9 | Update tất cả docs (PHASES_ROADMAP, MASTER_PLAN, CURRENT_STATE_AUDIT, EXECUTION_CHECKLIST, FRONTEND, SESSION_HANDOFF) | portfolio_nextjs |
+
+### Session 6 (2026-03-25) — Phase 1C Leaderboard (Phase 1C Complete)
+
+| Step | Mô tả | Repo |
+|---|---|---|
+| 1C.10 | Tạo `leaderboard.types.ts` — LeaderboardEntry interface | watermelon-game-api |
+| 1C.11 | Tạo `leaderboard.service.ts` — getLeaderboard() with DISTINCT ON query | watermelon-game-api |
+| 1C.12 | Update `leaderboard.routes.ts` — GET /leaderboard (public, 60/min rate limit) | watermelon-game-api |
+| 1C.13 | Update `leaderboard/index.ts` — thêm type export | watermelon-game-api |
+| 1C.14 | Tạo `lib/api/leaderboard.ts` — frontend API client | portfolio_nextjs |
+| 1C.15 | Tạo `app/game/Leaderboard.tsx` — leaderboard UI component (table, loading/error/empty states) | portfolio_nextjs |
+| 1C.16 | Update `GameClient.tsx` — thêm leaderboard + refresh trigger | portfolio_nextjs |
+| 1C.17 | Update docs: DECISION_LOG, EXECUTION_CHECKLIST, OPEN_QUESTIONS, PHASES_ROADMAP, SESSION_HANDOFF | portfolio_nextjs |
 
 ### Đã push lên remote
 
@@ -205,10 +218,8 @@ lib/game/
 
 | ID | Quyết định | Ảnh hưởng |
 |---|---|---|
-| PD-003 | Guest có xem leaderboard không? | Phase 1C |
-| PD-004 | Leaderboard type (all-time/daily/weekly) | Phase 1C |
-| PD-006 | Anti-cheat strategy | Phase 1C |
 | PD-007 | PaaS provider (Render/Railway/Fly.io) | Phase 1D |
+| PD-026 | Custom domain? | Phase 1D |
 
 ---
 
@@ -233,5 +244,5 @@ lib/game/
 1. Đọc file này để lấy context
 2. Đọc `docs/EXECUTION_CHECKLIST.md` để biết chi tiết checklist
 3. Đọc `docs/DECISION_LOG.md` để biết decisions đã chốt vs pending
-4. **Nếu chuyển Phase 1C**: implement leaderboard (cần PD-003, PD-004, PD-006)
-5. **Nếu deploy**: thực hiện các bước server ở trên
+4. **Phase 1C đã hoàn thành** — sẵn sàng cho Phase 1D (Deploy)
+5. **Nếu deploy**: thực hiện các bước server ở trên, cần chốt PD-007 (PaaS) và PD-026 (domain)

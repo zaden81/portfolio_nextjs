@@ -1,6 +1,6 @@
 # Decision Log
 
-> Last updated: 2026-03-24
+> Last updated: 2026-03-25
 > Status: Living document — updated as decisions are made
 
 ---
@@ -52,6 +52,10 @@
 | D-030 | Game route | Dedicated `/game` route in portfolio_nextjs | Owner (confirmed R-005) | Clean URL, shareable, better SEO | Frontend routing |
 | D-031 | Game frontend technology | HTML5 Canvas + matter.js physics engine | Dev | Best fit for physics-based game; lightweight, no WebGL needed | Game rendering, performance |
 | D-032 | Game levels | 3 levels: Simple Tower, Double Stack, Pyramid — static data served from API | Dev | Progressive difficulty; enough for MVP; easy to add more later | Game content, API contract |
+| D-033 | Guest leaderboard viewing | Guests can view leaderboard (public, read-only) | Owner (resolved PD-003) | Increases engagement; no data sensitivity on scores | Leaderboard endpoint is public, no auth required |
+| D-034 | Leaderboard type | All-time leaderboard only | Owner (resolved PD-004) | Simplest for stage 1; small dataset; easy to extend later | Single query, no time filtering |
+| D-035 | Anti-cheat strategy | Client trust + rate limiting (no server-side validation in stage 1) | Owner (resolved PD-006) | Sufficient for portfolio project; server validation adds significant complexity | Rate limit on score submission endpoints |
+| D-036 | Leaderboard display names | Show user display names from `users.name` column | Owner (resolved PD-018) | Users enter name at registration; no privacy concern for public leaderboard | Leaderboard JOIN users table for name |
 
 ---
 
@@ -65,9 +69,6 @@
 
 | ID | Title | Options | Blocks | Notes |
 |---|---|---|---|---|
-| PD-003 | Guest leaderboard viewing | (a) Guests can view, (b) Login required to view | Phase 1C | UX and conversion trade-off |
-| PD-004 | Leaderboard type | All-time, daily, weekly, combination | Phase 1C | DB schema impact |
-| PD-006 | Anti-cheat | Server validation, rate limiting, replay verification, none | Phase 1C | Complexity vs integrity trade-off |
 | PD-007 | PaaS provider | Render, Railway, Fly.io | Phase 1D | Each has different pricing/DX |
 | PD-008 | Admin panel scope | Contact messages, user accounts, game data, all | Phase 2 | Not blocking stage 1 |
 | PD-026 | Custom domain? | Yes (which domain?), No (use Vercel default) | Phase 1D | OAuth callback URLs, Vercel config |

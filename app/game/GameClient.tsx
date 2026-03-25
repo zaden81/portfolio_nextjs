@@ -8,6 +8,7 @@ import { LEVELS } from "@/lib/game/levels";
 import { CANVAS_WIDTH, CANVAS_HEIGHT } from "@/lib/game/physics";
 import type { GameState } from "@/lib/game/types";
 import { gameApi } from "@/lib/api/game";
+import Leaderboard from "./Leaderboard";
 
 export default function GameClient() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -28,6 +29,7 @@ export default function GameClient() {
   const [started, setStarted] = useState(false);
   const [sessionId, setSessionId] = useState<string | null>(null);
   const [allLevelsComplete, setAllLevelsComplete] = useState(false);
+  const [leaderboardRefresh, setLeaderboardRefresh] = useState(0);
 
   // Initialize engine
   useEffect(() => {
@@ -88,6 +90,7 @@ export default function GameClient() {
     } else {
       // All levels complete
       setAllLevelsComplete(true);
+      setLeaderboardRefresh((n) => n + 1);
       engine.stop();
 
       if (isAuthenticated && sessionId) {
@@ -129,6 +132,7 @@ export default function GameClient() {
     }
 
     setAllLevelsComplete(true);
+    setLeaderboardRefresh((n) => n + 1);
     engine.stop();
   }, [isAuthenticated, sessionId]);
 
@@ -308,6 +312,11 @@ export default function GameClient() {
             <p>Destroy all red blocks to complete each level.</p>
           </div>
         )}
+
+        {/* Leaderboard */}
+        <div className="mt-8">
+          <Leaderboard refreshTrigger={leaderboardRefresh} />
+        </div>
       </div>
     </div>
   );

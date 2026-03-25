@@ -1,7 +1,7 @@
 # Phases Roadmap
 
-> Last updated: 2026-03-24
-> Status: Living document — Phase 0 complete, Phase 1A complete (code), Phase 1B complete, Phase 1C polish in progress
+> Last updated: 2026-03-25
+> Status: Living document — Phase 0 complete, Phase 1A complete (code), Phase 1B complete, Phase 1C complete
 
 ---
 
@@ -12,7 +12,7 @@
 | **Phase 0** | Foundation & Planning | Finalize all pending decisions, set up repos, migrations, CI baseline | Owner decisions | ✅ Complete |
 | **Phase 1A** | Backend Core | Auth + basic API structure in watermelon-game-api | Phase 0 | ✅ Complete (code) — OAuth credentials pending owner |
 | **Phase 1B** | Game MVP | Game frontend + game logic + score submission | Phase 1A + PD-001 (game genre) | ✅ Complete |
-| **Phase 1C** | Leaderboard & Polish | Leaderboard, security hardening, portfolio integration | Phase 1B | 🔄 Polish items in progress |
+| **Phase 1C** | Leaderboard & Polish | Leaderboard, security hardening, portfolio integration | Phase 1B | ✅ Complete |
 | **Phase 1D** | Deploy & Launch | Production deploy, monitoring, final QA | Phase 1C | Pending |
 | **Phase 2** | Expansion | Additional projects, admin panel, analytics, etc. | Phase 1D | Future |
 
