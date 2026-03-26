@@ -11,6 +11,9 @@
 		},
 		{
 			"path": "../../watermelon-game-api"
+		},
+		{
+			"path": "../../../HTK"
 		}
 	],
 	"settings": {}
