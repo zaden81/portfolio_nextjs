@@ -1,14 +1,48 @@
 "use client";
 
-import { useRef, useEffect, useState, useCallback } from "react";
+import { useRef, useEffect, useState, useCallback, useMemo } from "react";
 import Link from "next/link";
+import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "@/lib/auth";
 import { createGameEngine, type GameEngine } from "@/lib/game/engine";
 import { LEVELS } from "@/lib/game/levels";
 import { CANVAS_WIDTH, CANVAS_HEIGHT } from "@/lib/game/physics";
 import type { GameState } from "@/lib/game/types";
 import { gameApi } from "@/lib/api/game";
+import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui";
 import Leaderboard from "./Leaderboard";
+
+const PARTICLE_COLORS = ["#CC2936", "#f0f4e8", "#C5D5A0", "#5a8e3a"];
+
+function CelebrationParticles() {
+  const particles = useMemo(
+    () =>
+      Array.from({ length: 12 }, (_, i) => ({
+        id: i,
+        color: PARTICLE_COLORS[i % 4],
+        x: (Math.random() - 0.5) * 300,
+        y: (Math.random() - 0.5) * 300,
+        rotate: Math.random() * 360,
+      })),
+    []
+  );
+
+  return (
+    <>
+      {particles.map((p) => (
+        <motion.div
+          key={p.id}
+          className="absolute w-2 h-2 rounded-full"
+          style={{ backgroundColor: p.color }}
+          initial={{ opacity: 1, x: 0, y: 0, scale: 1 }}
+          animate={{ opacity: 0, x: p.x, y: p.y, scale: 0, rotate: p.rotate }}
+          transition={{ duration: 1.5, ease: "easeOut" as const }}
+        />
+      ))}
+    </>
+  );
+}
 
 export default function GameClient() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -30,6 +64,7 @@ export default function GameClient() {
   const [sessionId, setSessionId] = useState<string | null>(null);
   const [allLevelsComplete, setAllLevelsComplete] = useState(false);
   const [leaderboardRefresh, setLeaderboardRefresh] = useState(0);
+  const [canvasReady, setCanvasReady] = useState(false);
 
   // Initialize engine
   useEffect(() => {
@@ -38,6 +73,7 @@ export default function GameClient() {
 
     const engine = createGameEngine(canvas);
     engineRef.current = engine;
+    setCanvasReady(true);
 
     engine.onStateChange((newState) => {
       setGameState({ ...newState });
@@ -53,7 +89,6 @@ export default function GameClient() {
     const engine = engineRef.current;
     if (!engine) return;
 
-    // Create session if authenticated
     if (isAuthenticated) {
       try {
         const { session } = await gameApi.createSession();
@@ -74,9 +109,8 @@ export default function GameClient() {
     if (!engine) return;
 
     const state = engine.getState();
-    const nextIndex = state.currentLevel; // currentLevel is 1-indexed, so it equals next array index
+    const nextIndex = state.currentLevel;
 
-    // Save score to backend
     if (isAuthenticated && sessionId) {
       try {
         await gameApi.updateScore(sessionId, state.score, state.currentLevel);
@@ -88,7 +122,6 @@ export default function GameClient() {
     if (nextIndex < LEVELS.length) {
       engine.loadLevel(LEVELS[nextIndex]);
     } else {
-      // All levels complete
       setAllLevelsComplete(true);
       setLeaderboardRefresh((n) => n + 1);
       engine.stop();
@@ -117,7 +150,6 @@ export default function GameClient() {
   }, []);
 
   const handleLevelFail = useCallback(async () => {
-    // When failing a level, complete the session with current score
     const engine = engineRef.current;
     if (!engine) return;
 
@@ -136,6 +168,11 @@ export default function GameClient() {
     engine.stop();
   }, [isAuthenticated, sessionId]);
 
+  const showStartOverlay = !started && !allLevelsComplete;
+  const showResultOverlay = started && gameState.phase === "result" && !allLevelsComplete;
+  const showGameOverOverlay = allLevelsComplete;
+  const showGameInfo = started && !allLevelsComplete && gameState.phase !== "result";
+
   return (
     <div className="min-h-screen bg-bg-primary">
       {/* Header */}
@@ -149,7 +186,18 @@ export default function GameClient() {
           </Link>
           <div className="flex items-center gap-6">
             <span className="text-text-primary font-medium">
-              Score: {gameState.score}
+              Score:{" "}
+              <AnimatePresence mode="wait">
+                <motion.span
+                  key={gameState.score}
+                  initial={{ scale: 1.3, color: "var(--accent)" }}
+                  animate={{ scale: 1, color: "var(--text-primary)" }}
+                  transition={{ duration: 0.3 }}
+                  className="inline-block"
+                >
+                  {gameState.score}
+                </motion.span>
+              </AnimatePresence>
             </span>
             {started && !allLevelsComplete && (
               <span className="text-text-secondary text-sm">
@@ -181,136 +229,212 @@ export default function GameClient() {
             style={{ aspectRatio: `${CANVAS_WIDTH}/${CANVAS_HEIGHT}` }}
           />
 
-          {/* Start overlay */}
-          {!started && !allLevelsComplete && (
-            <div className="absolute inset-0 flex flex-col items-center justify-center bg-bg-primary/90">
-              <h1 className="text-3xl font-bold text-text-primary mb-2">
-                Block Smasher
-              </h1>
-              <p className="text-text-secondary mb-6 text-center max-w-xs">
-                Drag and release the slingshot to destroy all blocks!
-              </p>
-              <button
-                onClick={startGame}
-                className="bg-accent hover:bg-accent-hover text-white px-8 py-3 rounded-full font-medium transition-colors text-lg"
-              >
-                Start Game
-              </button>
+          {/* Canvas loading */}
+          {!canvasReady && (
+            <div className="absolute inset-0 bg-bg-secondary flex items-center justify-center animate-pulse">
+              <span className="text-text-muted text-sm">Loading game...</span>
             </div>
           )}
+
+          {/* Start overlay */}
+          <AnimatePresence>
+            {showStartOverlay && (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.3 }}
+                className="absolute inset-0 flex flex-col items-center justify-center bg-bg-primary/90 backdrop-blur-sm"
+              >
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.9, y: 20 }}
+                  animate={{ opacity: 1, scale: 1, y: 0 }}
+                  exit={{ opacity: 0, scale: 0.9, y: 20 }}
+                  transition={{ duration: 0.3, delay: 0.1 }}
+                  className="text-center"
+                >
+                  <motion.h1
+                    initial={{ opacity: 0, y: -20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.2 }}
+                    className="text-3xl font-bold text-text-primary mb-2"
+                  >
+                    Block Smasher
+                  </motion.h1>
+                  <motion.p
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ delay: 0.4 }}
+                    className="text-text-secondary mb-6 max-w-xs mx-auto"
+                  >
+                    Drag and release the slingshot to destroy all blocks!
+                  </motion.p>
+                  <Button size="lg" onClick={startGame}>
+                    Start Game
+                  </Button>
+                </motion.div>
+              </motion.div>
+            )}
+          </AnimatePresence>
 
           {/* Level result overlay */}
-          {started && gameState.phase === "result" && !allLevelsComplete && (
-            <div className="absolute inset-0 flex flex-col items-center justify-center bg-bg-primary/85">
-              {gameState.levelComplete ? (
-                <>
-                  <h2 className="text-2xl font-bold text-status-success-text mb-2">
-                    Level Complete!
-                  </h2>
-                  <p className="text-text-secondary mb-6">
-                    Score: {gameState.score}
-                  </p>
-                  <div className="flex gap-3">
-                    <button
-                      onClick={handleNextLevel}
-                      className="bg-accent hover:bg-accent-hover text-white px-6 py-2 rounded-full font-medium transition-colors"
-                    >
-                      {gameState.currentLevel < LEVELS.length
-                        ? "Next Level"
-                        : "Finish"}
-                    </button>
-                    <button
-                      onClick={handleRetry}
-                      className="border border-border hover:border-border-hover text-text-secondary hover:text-text-primary px-6 py-2 rounded-full font-medium transition-colors"
-                    >
-                      Retry
-                    </button>
-                  </div>
-                </>
-              ) : (
-                <>
-                  <h2 className="text-2xl font-bold text-status-error-text mb-2">
-                    Level Failed
-                  </h2>
-                  <p className="text-text-secondary mb-1">
-                    Blocks remaining: {gameState.blocksRemaining}
-                  </p>
-                  <p className="text-text-secondary mb-6">
-                    Score: {gameState.score}
-                  </p>
-                  <div className="flex gap-3">
-                    <button
-                      onClick={handleRetry}
-                      className="bg-accent hover:bg-accent-hover text-white px-6 py-2 rounded-full font-medium transition-colors"
-                    >
-                      Retry Level
-                    </button>
-                    <button
-                      onClick={handleLevelFail}
-                      className="border border-border hover:border-border-hover text-text-secondary hover:text-text-primary px-6 py-2 rounded-full font-medium transition-colors"
-                    >
-                      End Game
-                    </button>
-                  </div>
-                </>
-              )}
-            </div>
-          )}
+          <AnimatePresence>
+            {showResultOverlay && (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.3 }}
+                className="absolute inset-0 flex flex-col items-center justify-center bg-bg-primary/85 backdrop-blur-sm"
+              >
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.9, y: 20 }}
+                  animate={{ opacity: 1, scale: 1, y: 0 }}
+                  exit={{ opacity: 0, scale: 0.9, y: 20 }}
+                  transition={{ duration: 0.3, delay: 0.1 }}
+                  className="text-center relative"
+                >
+                  {gameState.levelComplete ? (
+                    <>
+                      <CelebrationParticles />
+                      <h2 className="text-2xl font-bold text-status-success-text mb-2">
+                        Level Complete!
+                      </h2>
+                      <p className="text-text-secondary mb-6">
+                        Score: {gameState.score}
+                      </p>
+                      <div className="flex gap-3 justify-center">
+                        <Button onClick={handleNextLevel}>
+                          {gameState.currentLevel < LEVELS.length ? "Next Level" : "Finish"}
+                        </Button>
+                        <Button variant="outline" onClick={handleRetry}>
+                          Retry
+                        </Button>
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      <h2 className="text-2xl font-bold text-status-error-text mb-2">
+                        Level Failed
+                      </h2>
+                      <p className="text-text-secondary mb-1">
+                        Blocks remaining: {gameState.blocksRemaining}
+                      </p>
+                      <p className="text-text-secondary mb-6">
+                        Score: {gameState.score}
+                      </p>
+                      <div className="flex gap-3 justify-center">
+                        <Button onClick={handleRetry}>
+                          Retry Level
+                        </Button>
+                        <Button variant="outline" onClick={handleLevelFail}>
+                          End Game
+                        </Button>
+                      </div>
+                    </>
+                  )}
+                </motion.div>
+              </motion.div>
+            )}
+          </AnimatePresence>
 
           {/* All levels complete overlay */}
-          {allLevelsComplete && (
-            <div className="absolute inset-0 flex flex-col items-center justify-center bg-bg-primary/90">
-              <h2 className="text-3xl font-bold text-text-primary mb-2">
-                Game Over
-              </h2>
-              <p className="text-text-secondary text-lg mb-1">
-                Final Score: {gameState.score}
-              </p>
-              <p className="text-text-muted mb-6">
-                Levels completed: {gameState.currentLevel} / {LEVELS.length}
-              </p>
-              {isAuthenticated && (
-                <p className="text-status-success-text text-sm mb-4">
-                  Score saved!
-                </p>
-              )}
-              <button
-                onClick={handleRestart}
-                className="bg-accent hover:bg-accent-hover text-white px-8 py-3 rounded-full font-medium transition-colors text-lg"
+          <AnimatePresence>
+            {showGameOverOverlay && (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.3 }}
+                className="absolute inset-0 flex flex-col items-center justify-center bg-bg-primary/90 backdrop-blur-sm"
               >
-                Play Again
-              </button>
-            </div>
-          )}
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.9, y: 20 }}
+                  animate={{ opacity: 1, scale: 1, y: 0 }}
+                  exit={{ opacity: 0, scale: 0.9, y: 20 }}
+                  transition={{ duration: 0.3, delay: 0.1 }}
+                  className="text-center"
+                >
+                  <h2 className="text-3xl font-bold text-text-primary mb-2">
+                    Game Over
+                  </h2>
+                  <p className="text-text-secondary text-lg mb-1">
+                    Final Score: {gameState.score}
+                  </p>
+                  <p className="text-text-muted mb-6">
+                    Levels completed: {gameState.currentLevel} / {LEVELS.length}
+                  </p>
+                  {isAuthenticated && (
+                    <motion.p
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      transition={{ delay: 0.3 }}
+                      className="text-status-success-text text-sm mb-4"
+                    >
+                      Score saved!
+                    </motion.p>
+                  )}
+                  <Button size="lg" onClick={handleRestart}>
+                    Play Again
+                  </Button>
+                </motion.div>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
 
         {/* Game info */}
-        {started && !allLevelsComplete && gameState.phase !== "result" && (
-          <div className="mt-4 flex items-center justify-between text-sm text-text-secondary">
-            <span>
-              Projectiles:{" "}
-              {Array.from({ length: gameState.totalProjectiles }, (_, i) => (
-                <span key={i} className={i < gameState.projectilesLeft ? "text-text-primary" : "text-text-muted"}>
-                  ●
-                </span>
-              ))}
-            </span>
-            <span>Blocks: {gameState.blocksRemaining}</span>
-            <button
-              onClick={handleRetry}
-              className="text-text-secondary hover:text-text-primary transition-colors"
+        <AnimatePresence>
+          {showGameInfo && (
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 10 }}
+              transition={{ duration: 0.3 }}
+              className="mt-4 flex items-center justify-between text-sm bg-bg-secondary rounded-lg border border-border px-4 py-3"
             >
-              Retry Level
-            </button>
-          </div>
-        )}
+              <div className="flex items-center gap-1.5">
+                <span className="text-text-secondary mr-1">Shots:</span>
+                {Array.from({ length: gameState.totalProjectiles }, (_, i) => (
+                  <motion.div
+                    key={i}
+                    className={cn(
+                      "w-3 h-3 rounded-full border-2",
+                      i < gameState.projectilesLeft
+                        ? "bg-accent border-accent"
+                        : "bg-transparent border-text-muted"
+                    )}
+                    initial={false}
+                    animate={
+                      i >= gameState.projectilesLeft
+                        ? { scale: [1, 0.7, 1] }
+                        : { scale: 1 }
+                    }
+                    transition={{ duration: 0.3 }}
+                  />
+                ))}
+              </div>
+              <span className="text-text-secondary">
+                Blocks: {gameState.blocksRemaining}
+              </span>
+              <Button variant="ghost" size="sm" onClick={handleRetry}>
+                Retry Level
+              </Button>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         {/* Instructions */}
         {!started && (
-          <div className="mt-6 text-center text-text-muted text-sm">
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.6 }}
+            className="mt-6 text-center text-text-muted text-sm"
+          >
             <p>Drag the ball on the slingshot backward, then release to launch.</p>
             <p>Destroy all red blocks to complete each level.</p>
-          </div>
+          </motion.div>
         )}
 
         {/* Leaderboard */}
