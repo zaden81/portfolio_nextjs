@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { motion, AnimatePresence } from "framer-motion";
 import { NAV_LINKS, PHONE } from "@/config";
 import { PhoneIcon } from "@/components/icons";
 import { Container, ThemeToggle } from "@/components/ui";
@@ -112,26 +113,41 @@ export default function NavbarClient() {
         <div className="lg:hidden flex items-center gap-2">
           <ThemeToggle />
           <button
-            className="text-text-primary p-2"
+            className="text-text-primary p-2 flex flex-col justify-center items-center gap-[5px]"
             onClick={() => setIsOpen(!isOpen)}
             aria-label="Toggle menu"
           >
-            <div className="w-6 h-0.5 bg-text-primary mb-1.5 transition-all" />
-            <div className="w-6 h-0.5 bg-text-primary mb-1.5 transition-all" />
-            <div className="w-6 h-0.5 bg-text-primary transition-all" />
+            <motion.div
+              className="w-6 h-0.5 bg-text-primary origin-center"
+              animate={isOpen ? { rotate: 45, y: 7 } : { rotate: 0, y: 0 }}
+              transition={{ duration: 0.3 }}
+            />
+            <motion.div
+              className="w-6 h-0.5 bg-text-primary"
+              animate={isOpen ? { opacity: 0 } : { opacity: 1 }}
+              transition={{ duration: 0.2 }}
+            />
+            <motion.div
+              className="w-6 h-0.5 bg-text-primary origin-center"
+              animate={isOpen ? { rotate: -45, y: -7 } : { rotate: 0, y: 0 }}
+              transition={{ duration: 0.3 }}
+            />
           </button>
         </div>
       </Container>
 
-      <MobileMenu
-        isOpen={isOpen}
-        navLinks={NAV_LINKS}
-        phoneNumber={PHONE}
-        onNavClick={handleNavClick}
-        isAuthenticated={isAuthenticated}
-        userName={user?.name}
-        onLogout={logout}
-      />
+      <AnimatePresence>
+        {isOpen && (
+          <MobileMenu
+            navLinks={NAV_LINKS}
+            phoneNumber={PHONE}
+            onNavClick={handleNavClick}
+            isAuthenticated={isAuthenticated}
+            userName={user?.name}
+            onLogout={logout}
+          />
+        )}
+      </AnimatePresence>
     </nav>
   );
 }
