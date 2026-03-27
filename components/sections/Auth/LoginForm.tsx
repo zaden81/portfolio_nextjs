@@ -3,9 +3,15 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
+import { motion, AnimatePresence } from "framer-motion";
 import { useAuth, getApiUrl } from "@/lib/auth";
 import { Container, Input, Button, StatusAlert } from "@/components/ui";
 import type { FormStatus } from "@/types";
+
+const fieldVariants = {
+  hidden: { opacity: 0, y: 10 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.3 } },
+};
 
 export default function LoginForm() {
   const { login } = useAuth();
@@ -50,17 +56,41 @@ export default function LoginForm() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-bg-primary">
       <Container className="max-w-md w-full py-12">
-        <div className="bg-bg-tertiary rounded-2xl p-8 border border-border">
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, ease: "easeOut" as const }}
+          className="bg-bg-tertiary rounded-2xl p-8 border border-border"
+        >
           <h1 className="text-2xl font-bold text-text-primary mb-6 text-center">
             Login
           </h1>
 
-          {status === "error" && (
-            <StatusAlert variant="error">{error}</StatusAlert>
-          )}
+          <AnimatePresence>
+            {status === "error" && (
+              <motion.div
+                key="error-alert"
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: "auto" }}
+                exit={{ opacity: 0, height: 0 }}
+                transition={{ duration: 0.3 }}
+              >
+                <StatusAlert variant="error">{error}</StatusAlert>
+              </motion.div>
+            )}
+          </AnimatePresence>
 
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div>
+          <motion.form
+            onSubmit={handleSubmit}
+            className="space-y-4"
+            initial="hidden"
+            animate="visible"
+            variants={{
+              hidden: {},
+              visible: { transition: { staggerChildren: 0.1, delayChildren: 0.2 } },
+            }}
+          >
+            <motion.div variants={fieldVariants}>
               <label className="block text-text-secondary text-sm mb-1">
                 Email
               </label>
@@ -71,9 +101,9 @@ export default function LoginForm() {
                 placeholder="you@example.com"
                 required
               />
-            </div>
+            </motion.div>
 
-            <div>
+            <motion.div variants={fieldVariants}>
               <label className="block text-text-secondary text-sm mb-1">
                 Password
               </label>
@@ -84,16 +114,29 @@ export default function LoginForm() {
                 placeholder="Your password"
                 required
               />
-            </div>
+            </motion.div>
 
-            <Button
-              type="submit"
-              className="w-full"
-              disabled={status === "loading"}
-            >
-              {status === "loading" ? "Logging in..." : "Login"}
-            </Button>
-          </form>
+            <motion.div variants={fieldVariants}>
+              <Button
+                type="submit"
+                className="w-full"
+                disabled={status === "loading"}
+              >
+                {status === "loading" ? (
+                  <span className="flex items-center justify-center gap-2">
+                    <motion.span
+                      className="w-4 h-4 border-2 border-current border-t-transparent rounded-full inline-block"
+                      animate={{ rotate: 360 }}
+                      transition={{ repeat: Infinity, duration: 0.8, ease: "linear" as const }}
+                    />
+                    Logging in...
+                  </span>
+                ) : (
+                  "Login"
+                )}
+              </Button>
+            </motion.div>
+          </motion.form>
 
           <div className="relative my-6">
             <div className="absolute inset-0 flex items-center">
@@ -107,10 +150,12 @@ export default function LoginForm() {
           </div>
 
           <div className="space-y-3">
-            <button
+            <motion.button
               type="button"
               onClick={handleGoogleLogin}
-              className="w-full flex items-center justify-center gap-3 px-4 py-2.5 border border-border rounded-lg bg-bg-secondary hover:bg-bg-primary transition-colors text-text-primary"
+              whileHover={{ scale: 1.01 }}
+              whileTap={{ scale: 0.99 }}
+              className="w-full flex items-center justify-center gap-3 px-4 py-3 border border-border rounded-lg bg-bg-secondary hover:bg-bg-primary hover:shadow-md transition-all text-text-primary font-medium"
             >
               <svg className="w-5 h-5" viewBox="0 0 24 24">
                 <path
@@ -131,12 +176,14 @@ export default function LoginForm() {
                 />
               </svg>
               Continue with Google
-            </button>
+            </motion.button>
 
-            <button
+            <motion.button
               type="button"
               onClick={handleGitHubLogin}
-              className="w-full flex items-center justify-center gap-3 px-4 py-2.5 border border-border rounded-lg bg-bg-secondary hover:bg-bg-primary transition-colors text-text-primary"
+              whileHover={{ scale: 1.01 }}
+              whileTap={{ scale: 0.99 }}
+              className="w-full flex items-center justify-center gap-3 px-4 py-3 border border-border rounded-lg bg-bg-secondary hover:bg-bg-primary hover:shadow-md transition-all text-text-primary font-medium"
             >
               <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
                 <path
@@ -146,7 +193,7 @@ export default function LoginForm() {
                 />
               </svg>
               Continue with GitHub
-            </button>
+            </motion.button>
           </div>
 
           <p className="mt-6 text-center text-text-secondary text-sm">
@@ -158,7 +205,7 @@ export default function LoginForm() {
               Register
             </Link>
           </p>
-        </div>
+        </motion.div>
       </Container>
     </div>
   );
