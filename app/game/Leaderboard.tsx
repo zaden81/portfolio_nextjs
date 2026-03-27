@@ -1,10 +1,13 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
+import { motion } from "framer-motion";
 import {
   leaderboardApi,
   type LeaderboardEntry,
 } from "@/lib/api/leaderboard";
+import { TrophyIcon } from "@/components/icons";
+import { cn } from "@/lib/utils";
 
 interface LeaderboardProps {
   refreshTrigger?: number;
@@ -50,8 +53,14 @@ export default function Leaderboard({ refreshTrigger }: LeaderboardProps) {
       </div>
 
       {loading && (
-        <div className="px-4 py-8 text-center text-text-muted text-sm">
-          Loading...
+        <div className="px-4 py-3 space-y-3">
+          {Array.from({ length: 5 }).map((_, i) => (
+            <div key={i} className="flex items-center gap-4 animate-pulse">
+              <div className="w-8 h-4 bg-bg-tertiary rounded" />
+              <div className="flex-1 h-4 bg-bg-tertiary rounded" />
+              <div className="w-16 h-4 bg-bg-tertiary rounded" />
+            </div>
+          ))}
         </div>
       )}
 
@@ -91,16 +100,32 @@ export default function Leaderboard({ refreshTrigger }: LeaderboardProps) {
             </thead>
             <tbody>
               {entries.map((entry) => (
-                <tr
+                <motion.tr
                   key={entry.rank}
-                  className="border-t border-border/50 hover:bg-bg-tertiary/50 transition-colors"
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: entry.rank * 0.05, duration: 0.3 }}
+                  className={cn(
+                    "border-t border-border/50 hover:bg-bg-tertiary/50 transition-colors",
+                    entry.rank === 1 && "bg-yellow-500/5",
+                    entry.rank === 2 && "bg-gray-300/5",
+                    entry.rank === 3 && "bg-orange-600/5"
+                  )}
                 >
-                  <td
-                    className={`px-4 py-2 font-bold ${
-                      entry.rank <= 3 ? "text-accent" : "text-text-muted"
-                    }`}
-                  >
-                    {entry.rank}
+                  <td className="px-4 py-2 font-bold">
+                    {entry.rank <= 3 ? (
+                      <TrophyIcon
+                        variant={
+                          entry.rank === 1
+                            ? "gold"
+                            : entry.rank === 2
+                            ? "silver"
+                            : "bronze"
+                        }
+                      />
+                    ) : (
+                      <span className="text-text-muted">{entry.rank}</span>
+                    )}
                   </td>
                   <td className="px-4 py-2 text-text-primary font-medium truncate max-w-[150px]">
                     {entry.player_name}
@@ -114,7 +139,7 @@ export default function Leaderboard({ refreshTrigger }: LeaderboardProps) {
                   <td className="px-4 py-2 text-right text-text-muted hidden sm:table-cell">
                     {formatDate(entry.completed_at)}
                   </td>
-                </tr>
+                </motion.tr>
               ))}
             </tbody>
           </table>
