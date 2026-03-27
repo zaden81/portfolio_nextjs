@@ -1,6 +1,9 @@
+"use client";
+
+import { motion, type HTMLMotionProps } from "framer-motion";
 import { cn } from "@/lib/utils";
 
-interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+interface ButtonProps extends HTMLMotionProps<"button"> {
   variant?: "primary" | "outline" | "ghost";
   size?: "sm" | "md" | "lg";
   rounded?: boolean;
@@ -26,20 +29,24 @@ export default function Button({
   rounded = true,
   className,
   children,
+  disabled,
   ...props
 }: ButtonProps) {
   return (
-    <button
+    <motion.button
+      whileHover={disabled ? undefined : { scale: 1.02 }}
+      whileTap={disabled ? undefined : { scale: 0.97 }}
       className={cn(
-        "font-medium transition-colors",
+        "font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/50 focus-visible:ring-offset-2 focus-visible:ring-offset-bg-primary",
         variantStyles[variant],
         sizeStyles[size],
         rounded && "rounded-full",
         className
       )}
+      disabled={disabled}
       {...props}
     >
       {children}
-    </button>
+    </motion.button>
   );
 }

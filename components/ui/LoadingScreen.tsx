@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import Image from "next/image";
+import { motion } from "framer-motion";
 
 export default function LoadingScreen() {
   const [isMinTimeElapsed, setIsMinTimeElapsed] = useState(false);
@@ -9,7 +10,6 @@ export default function LoadingScreen() {
   const [isFadingOut, setIsFadingOut] = useState(false);
   const [isRemoved, setIsRemoved] = useState(false);
 
-  // Minimum 3s timer
   useEffect(() => {
     const timer = setTimeout(() => {
       setIsMinTimeElapsed(true);
@@ -17,7 +17,6 @@ export default function LoadingScreen() {
     return () => clearTimeout(timer);
   }, []);
 
-  // Page load detection
   useEffect(() => {
     if (document.readyState === "complete") {
       setTimeout(() => {
@@ -31,7 +30,6 @@ export default function LoadingScreen() {
     return () => window.removeEventListener("load", handleLoad);
   }, []);
 
-  // Trigger fade-out when both conditions are met
   useEffect(() => {
     if (isMinTimeElapsed && isPageLoaded) {
       setTimeout(() => {
@@ -55,14 +53,25 @@ export default function LoadingScreen() {
       }`}
       onTransitionEnd={handleTransitionEnd}
     >
-      <Image
-        src="/icon.png"
-        alt="Loading"
-        width={80}
-        height={80}
-        priority
-        className="animate-[spin_1.5s_linear_infinite]"
-      />
+      <div className="relative flex items-center justify-center">
+        <motion.div
+          className="absolute w-24 h-24 rounded-full border-2 border-accent/30 border-t-accent"
+          animate={{ rotate: 360 }}
+          transition={{ repeat: Infinity, duration: 1.2, ease: "linear" as const }}
+        />
+        <motion.div
+          animate={{ scale: [1, 1.1, 1] }}
+          transition={{ repeat: Infinity, duration: 2, ease: "easeInOut" as const }}
+        >
+          <Image
+            src="/icon.png"
+            alt="Loading"
+            width={64}
+            height={64}
+            priority
+          />
+        </motion.div>
+      </div>
     </div>
   );
 }

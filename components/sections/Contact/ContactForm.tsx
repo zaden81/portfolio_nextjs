@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import type { ContactFormData, FormStatus } from "@/types";
 import { Input, Textarea, Button, StatusAlert } from "@/components/ui";
 
@@ -41,12 +42,30 @@ export default function ContactForm() {
 
   return (
     <div className="lg:flex-1">
-      {status === "success" && (
-        <StatusAlert variant="success">{statusMsg}</StatusAlert>
-      )}
-      {status === "error" && (
-        <StatusAlert variant="error">{statusMsg}</StatusAlert>
-      )}
+      <AnimatePresence>
+        {status === "success" && (
+          <motion.div
+            key="success-alert"
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            transition={{ duration: 0.3 }}
+          >
+            <StatusAlert variant="success">{statusMsg}</StatusAlert>
+          </motion.div>
+        )}
+        {status === "error" && (
+          <motion.div
+            key="error-alert"
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            transition={{ duration: 0.3 }}
+          >
+            <StatusAlert variant="error">{statusMsg}</StatusAlert>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       <form onSubmit={handleSubmit} className="space-y-4">
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">

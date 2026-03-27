@@ -1,3 +1,5 @@
+"use client";
+
 import { SOCIAL_LINKS } from "@/data";
 import { SocialLinkButton } from "@/components/ui";
 
