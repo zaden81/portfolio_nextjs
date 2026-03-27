@@ -1,5 +1,6 @@
 import Image from "next/image";
 import { Container } from "@/components/ui";
+import { FadeIn } from "@/components/motion";
 import HeroScrollButton from "./HeroScrollButton";
 import WaveDivider from "./WaveDivider";
 
@@ -12,7 +13,7 @@ export default function Hero() {
       <Container className="py-10 sm:py-14 lg:py-16 w-full">
         <div className="flex flex-col lg:flex-row items-center gap-8 sm:gap-10 lg:gap-12">
           {/* Text */}
-          <div className="flex-1 text-text-primary">
+          <FadeIn direction="left" delay={0.2} className="flex-1 text-text-primary">
             <div className="flex items-center gap-4 mb-6">
               <Image
                 src="/images/happy-bearded-young-man.JPEG"
@@ -27,10 +28,10 @@ export default function Hero() {
               I am open to new career opportunities in Ho Chi Minh City.
             </h2>
             <HeroScrollButton />
-          </div>
+          </FadeIn>
 
           {/* Image */}
-          <div className="flex-1 flex justify-center relative">
+          <FadeIn direction="right" delay={0.5} className="flex-1 flex justify-center relative">
             <div className="absolute inset-0 bg-text-secondary/10 rounded-full blur-3xl scale-75" />
             <Image
               src="/images/portrait-happy-excited-man-holding-laptop-computer.png"
@@ -39,7 +40,7 @@ export default function Hero() {
               height={450}
               className="relative z-10 object-contain drop-shadow-2xl"
             />
-          </div>
+          </FadeIn>
         </div>
       </Container>
 

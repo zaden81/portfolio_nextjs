@@ -1,10 +1,11 @@
 import Image from "next/image";
 import { MY_STORY_TEXT } from "@/config";
+import { FadeIn } from "@/components/motion";
 
 export default function MyStory() {
   return (
     <div className="flex flex-col lg:flex-row gap-8 lg:gap-12 mb-20">
-      <div className="flex-1">
+      <FadeIn direction="left" className="flex-1">
         <Image
           src="/images/IMG_2814.JPEG"
           alt="Thuong"
@@ -12,9 +13,9 @@ export default function MyStory() {
           height={400}
           className="rounded-2xl object-cover w-full max-h-[400px]"
         />
-      </div>
+      </FadeIn>
 
-      <div className="flex-1 flex flex-col justify-center">
+      <FadeIn direction="right" delay={0.2} className="flex-1 flex flex-col justify-center">
         <div className="flex items-center justify-end gap-4 mb-6">
           <h2 className="text-text-primary text-2xl sm:text-3xl font-bold">My Story</h2>
           <Image
@@ -27,7 +28,7 @@ export default function MyStory() {
         </div>
         <h3 className="text-text-secondary text-xl mb-4">a little bit about me</h3>
         <p className="text-text-muted leading-relaxed">{MY_STORY_TEXT}</p>
-      </div>
+      </FadeIn>
     </div>
   );
 }

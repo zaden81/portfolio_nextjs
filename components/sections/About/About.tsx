@@ -1,4 +1,5 @@
 import { Container } from "@/components/ui";
+import { FadeIn } from "@/components/motion";
 import MyStory from "./MyStory";
 import InfoCard from "./InfoCard";
 import SkillsGrid from "./SkillsGrid";
@@ -11,12 +12,12 @@ export default function About() {
 
         {/* Info + Skills */}
         <div className="flex flex-col lg:flex-row gap-8 lg:gap-12">
-          <div className="flex-1">
+          <FadeIn delay={0.1} className="flex-1">
             <InfoCard />
-          </div>
-          <div className="flex-1">
+          </FadeIn>
+          <FadeIn delay={0.3} className="flex-1">
             <SkillsGrid />
-          </div>
+          </FadeIn>
         </div>
       </Container>
     </section>
