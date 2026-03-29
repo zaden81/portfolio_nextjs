@@ -1,5 +1,14 @@
 import { authFetch } from "@/lib/auth/api";
 
+const SESSION_ID_PATTERN = /^[a-zA-Z0-9_-]{1,128}$/;
+
+function validateSessionId(sessionId: string): string {
+  if (!SESSION_ID_PATTERN.test(sessionId)) {
+    throw new Error("Invalid session ID format");
+  }
+  return encodeURIComponent(sessionId);
+}
+
 export interface GameSessionResponse {
   id: string;
   user_id: string;
@@ -21,7 +30,8 @@ export const gameApi = {
     score: number,
     levelsCompleted?: number,
   ): Promise<{ session: GameSessionResponse }> {
-    return authFetch(`/game/sessions/${sessionId}/score`, {
+    const id = validateSessionId(sessionId);
+    return authFetch(`/game/sessions/${id}/score`, {
       method: "PATCH",
       body: JSON.stringify({ score, levelsCompleted }),
     });
@@ -30,7 +40,8 @@ export const gameApi = {
   completeSession(
     sessionId: string,
   ): Promise<{ session: GameSessionResponse }> {
-    return authFetch(`/game/sessions/${sessionId}/complete`, {
+    const id = validateSessionId(sessionId);
+    return authFetch(`/game/sessions/${id}/complete`, {
       method: "POST",
     });
   },

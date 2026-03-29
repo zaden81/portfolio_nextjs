@@ -2,7 +2,7 @@
 
 import { Suspense, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useAuth } from "@/lib/auth";
+import { useAuth, getSafeErrorMessage } from "@/lib/auth";
 import { Container } from "@/components/ui";
 
 function AuthCallbackContent() {
@@ -16,17 +16,27 @@ function AuthCallbackContent() {
     const refreshToken = searchParams.get("refreshToken");
     const errorParam = searchParams.get("error");
 
+    // Clear sensitive tokens from URL and browser history immediately
+    window.history.replaceState({}, "", "/auth/callback");
+
     if (errorParam) {
-      setError(errorParam);
-      setTimeout(() => router.push(`/login?error=${errorParam}`), 2000);
+      setError(getSafeErrorMessage(errorParam));
+      setTimeout(() => router.push("/login?error=oauth_failed"), 2000);
       return;
     }
 
     if (accessToken && refreshToken) {
-      setTokens(accessToken, refreshToken);
-      router.push("/");
+      (async () => {
+        try {
+          await setTokens(accessToken, refreshToken);
+          router.push("/");
+        } catch {
+          setError(getSafeErrorMessage("oauth_failed"));
+          setTimeout(() => router.push("/login?error=oauth_failed"), 2000);
+        }
+      })();
     } else {
-      setError("Missing tokens");
+      setError(getSafeErrorMessage("missing_tokens"));
       setTimeout(() => router.push("/login?error=oauth_failed"), 2000);
     }
   }, [searchParams, setTokens, router]);
@@ -35,7 +45,7 @@ function AuthCallbackContent() {
     return (
       <div className="min-h-screen flex items-center justify-center bg-bg-primary">
         <Container className="max-w-md text-center">
-          <p className="text-red-500">Authentication failed: {error}</p>
+          <p className="text-red-500">{error}</p>
           <p className="text-text-secondary mt-2">Redirecting to login...</p>
         </Container>
       </div>

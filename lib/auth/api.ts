@@ -6,7 +6,8 @@ import type {
   TokenPair,
 } from "@/types";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
+// TODO: When migrating to HTTP-only cookies, add credentials: "include" to all fetch calls
+const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
 let accessToken: string | null = null;
 
@@ -18,10 +19,19 @@ export function getAccessToken(): string | null {
   return accessToken;
 }
 
-export async function authFetch<T>(
+function getUrl(path: string): string {
+  if (!API_URL) {
+    throw new Error(
+      "NEXT_PUBLIC_API_URL is not configured. Set it in your environment variables.",
+    );
+  }
+  return `${API_URL}${path}`;
+}
+
+async function doFetch(
   path: string,
   options: RequestInit = {},
-): Promise<T> {
+): Promise<Response> {
   const headers: Record<string, string> = {
     "Content-Type": "application/json",
     ...(options.headers as Record<string, string>),
@@ -31,10 +41,55 @@ export async function authFetch<T>(
     headers["Authorization"] = `Bearer ${accessToken}`;
   }
 
-  const res = await fetch(`${API_URL}${path}`, {
-    ...options,
-    headers,
+  return fetch(getUrl(path), { ...options, headers });
+}
+
+let refreshPromise: Promise<TokenPair> | null = null;
+
+async function refreshTokens(): Promise<TokenPair> {
+  if (refreshPromise) return refreshPromise;
+
+  refreshPromise = (async () => {
+    const refreshToken = localStorage.getItem("refreshToken");
+    if (!refreshToken) throw new Error("No refresh token available");
+
+    const res = await fetch(getUrl("/auth/refresh"), {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ refreshToken }),
+    });
+
+    if (!res.ok) {
+      localStorage.removeItem("refreshToken");
+      accessToken = null;
+      throw new Error("Token refresh failed");
+    }
+
+    const { tokens } = (await res.json()) as { tokens: TokenPair };
+    accessToken = tokens.accessToken;
+    localStorage.setItem("refreshToken", tokens.refreshToken);
+    return tokens;
+  })().finally(() => {
+    refreshPromise = null;
   });
+
+  return refreshPromise;
+}
+
+export async function authFetch<T>(
+  path: string,
+  options: RequestInit = {},
+): Promise<T> {
+  let res = await doFetch(path, options);
+
+  if (res.status === 401 && accessToken) {
+    try {
+      await refreshTokens();
+      res = await doFetch(path, options);
+    } catch {
+      // Refresh failed — fall through to error handling below
+    }
+  }
 
   if (!res.ok) {
     const body = await res.json().catch(() => ({ error: "Request failed" }));
@@ -45,6 +100,11 @@ export async function authFetch<T>(
 }
 
 export function getApiUrl(): string {
+  if (!API_URL) {
+    throw new Error(
+      "NEXT_PUBLIC_API_URL is not configured. Set it in your environment variables.",
+    );
+  }
   return API_URL;
 }
 

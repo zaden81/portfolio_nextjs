@@ -3,8 +3,8 @@
  *
  * NOTE: On Vercel serverless, each instance has its own memory.
  * This provides per-instance rate limiting — a baseline defense,
- * not a hard global limit. For production-grade limiting, consider
- * Upstash Redis rate limiter or Vercel WAF.
+ * not a hard global limit. For production-grade limiting, use
+ * @upstash/ratelimit with Upstash Redis or Vercel WAF.
  */
 
 interface RateLimitEntry {
@@ -13,13 +13,13 @@ interface RateLimitEntry {
 }
 
 const store = new Map<string, RateLimitEntry>();
+const MAX_STORE_SIZE = 10_000;
 
 const CLEANUP_INTERVAL = 60_000; // 1 minute
 let lastCleanup = Date.now();
 
 function cleanup() {
   const now = Date.now();
-  if (now - lastCleanup < CLEANUP_INTERVAL) return;
   lastCleanup = now;
   for (const [key, entry] of store) {
     if (now > entry.resetAt) {
@@ -41,11 +41,21 @@ interface RateLimitResult {
 
 export function checkRateLimit(
   ip: string,
-  options: RateLimitOptions
+  options: RateLimitOptions,
 ): RateLimitResult {
-  cleanup();
-
   const now = Date.now();
+  if (now - lastCleanup >= CLEANUP_INTERVAL) {
+    cleanup();
+  }
+
+  // Prevent unbounded memory growth under DDoS
+  if (store.size >= MAX_STORE_SIZE) {
+    cleanup();
+    if (store.size >= MAX_STORE_SIZE) {
+      return { allowed: false, remaining: 0, resetAt: now + options.windowMs };
+    }
+  }
+
   const entry = store.get(ip);
 
   if (!entry || now > entry.resetAt) {

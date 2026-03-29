@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
-import { useAuth, getApiUrl } from "@/lib/auth";
+import { useAuth, getApiUrl, getSafeErrorMessage } from "@/lib/auth";
 import { Container, Input, Button, StatusAlert } from "@/components/ui";
 import type { FormStatus } from "@/types";
 
@@ -25,7 +25,7 @@ export default function LoginForm() {
   useEffect(() => {
     const errorParam = searchParams.get("error");
     if (errorParam) {
-      setError(decodeURIComponent(errorParam));
+      setError(getSafeErrorMessage(errorParam));
       setStatus("error");
     }
   }, [searchParams]);

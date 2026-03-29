@@ -1,2 +1,2 @@
-export { validateEnv } from "./env";
+export { validateEnv, validatePublicEnv } from "./env";
 export { contactSchema, type ContactInput } from "./contact";

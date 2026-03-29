@@ -1,5 +1,9 @@
 "use client";
 
+// TODO: Ideal security improvement — store refresh tokens in HTTP-only cookies
+// set by the backend, not in localStorage. This requires backend changes to
+// set cookies on login/refresh responses and read them on incoming requests.
+
 import {
   createContext,
   useContext,
@@ -27,27 +31,44 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<AuthUser | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Try to restore session on mount
+  // Restore session on mount with cleanup for React Strict Mode
   useEffect(() => {
+    let cancelled = false;
     const refreshToken = localStorage.getItem("refreshToken");
+
     if (!refreshToken) {
       setIsLoading(false);
       return;
     }
 
+    // Remove token from localStorage immediately to reduce exposure window.
+    // It will be written back only after a successful refresh.
+    localStorage.removeItem("refreshToken");
+
     authApi
       .refresh(refreshToken)
       .then(({ tokens }) => {
+        if (cancelled) return;
         setAccessToken(tokens.accessToken);
         localStorage.setItem("refreshToken", tokens.refreshToken);
         return authApi.me();
       })
-      .then(({ user }) => setUser(user))
+      .then((res) => {
+        if (cancelled || !res) return;
+        setUser(res.user);
+      })
       .catch(() => {
+        if (cancelled) return;
         localStorage.removeItem("refreshToken");
         setAccessToken(null);
       })
-      .finally(() => setIsLoading(false));
+      .finally(() => {
+        if (!cancelled) setIsLoading(false);
+      });
+
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   const login = useCallback(async (data: LoginFormData) => {
@@ -74,11 +95,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(null);
   }, []);
 
-  const setTokens = useCallback(async (accessToken: string, refreshToken: string) => {
-    setAccessToken(accessToken);
-    localStorage.setItem("refreshToken", refreshToken);
-    const { user } = await authApi.me();
-    setUser(user);
+  const setTokens = useCallback(async (at: string, rt: string) => {
+    setAccessToken(at);
+    localStorage.setItem("refreshToken", rt);
+    try {
+      const { user } = await authApi.me();
+      setUser(user);
+    } catch {
+      setAccessToken(null);
+      localStorage.removeItem("refreshToken");
+      setUser(null);
+      throw new Error("Failed to verify authentication. Please try again.");
+    }
   }, []);
 
   return (

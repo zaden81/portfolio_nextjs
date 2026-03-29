@@ -93,8 +93,8 @@ export default function GameClient() {
       try {
         const { session } = await gameApi.createSession();
         setSessionId(session.id);
-      } catch {
-        // Continue without session
+      } catch (err) {
+        console.warn("[Game] Failed to create session:", err);
       }
     }
 
@@ -114,8 +114,8 @@ export default function GameClient() {
     if (isAuthenticated && sessionId) {
       try {
         await gameApi.updateScore(sessionId, state.score, state.currentLevel);
-      } catch {
-        // Continue without saving
+      } catch (err) {
+        console.warn("[Game] Failed to update score:", err);
       }
     }
 
@@ -130,8 +130,8 @@ export default function GameClient() {
         try {
           await gameApi.updateScore(sessionId, state.score, state.currentLevel);
           await gameApi.completeSession(sessionId);
-        } catch {
-          // Silent fail
+        } catch (err) {
+          console.warn("[Game] Failed to save final score:", err);
         }
       }
     }
@@ -158,8 +158,8 @@ export default function GameClient() {
       try {
         await gameApi.updateScore(sessionId, state.score, state.currentLevel - 1);
         await gameApi.completeSession(sessionId);
-      } catch {
-        // Silent fail
+      } catch (err) {
+        console.warn("[Game] Failed to save on level fail:", err);
       }
     }
 

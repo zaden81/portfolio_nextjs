@@ -7,3 +7,13 @@ const envSchema = z.object({
 export function validateEnv() {
   return envSchema.parse(process.env);
 }
+
+const publicEnvSchema = z.object({
+  NEXT_PUBLIC_API_URL: z.string().url("NEXT_PUBLIC_API_URL must be a valid URL"),
+});
+
+export function validatePublicEnv() {
+  return publicEnvSchema.parse({
+    NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL,
+  });
+}
