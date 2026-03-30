@@ -31,7 +31,16 @@
       "Bash(find /d/code/platform-infra -type f \\\\\\(-name CLAUDE.md -o -name .claude -o -path */.claude/* \\\\\\))",
       "Bash(find /d/code/portfolio_nextjs -type f \\\\\\(-name *game* -o -name *Game* \\\\\\))",
       "Bash(npm run:*)",
-      "Bash(git status:*)"
+      "Bash(git status:*)",
+      "Bash(git stash:*)",
+      "Bash(/tmp/audit.txt:*)",
+      "Read(//tmp/**)",
+      "Bash(npm audit:*)",
+      "Bash(CODE_QUALITY_SUMMARY.md:*)",
+      "Bash(/tmp/project_overview.txt:*)",
+      "Bash(CODE_QUALITY_DETAILED_REFERENCE.txt:*)",
+      "Bash(wc -l /d/code/portfolio_nextjs/app/*.tsx /d/code/portfolio_nextjs/components/*/*.tsx)",
+      "Bash(AUDIT_REPORT_MANIFEST.txt:*)"
     ]
   }
 }
